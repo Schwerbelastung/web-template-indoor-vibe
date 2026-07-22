@@ -108,6 +108,15 @@ export const transactionLineItems = body => {
   return post('/api/transaction-line-items', body);
 };
 
+// Fetch the current EUR->USD exchange rate from the local API endpoint,
+// used for display-only USD price estimates.
+//
+// See `server/api/exchange-rate.js`. Returns { base, rate, date };
+// rate is null when no rate is available.
+export const getExchangeRate = () => {
+  return request('/api/exchange-rate', { method: methods.GET });
+};
+
 // Initiate a privileged transaction.
 //
 // With privileged transitions, the transactions need to be created

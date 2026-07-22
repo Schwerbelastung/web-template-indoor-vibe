@@ -256,6 +256,52 @@ export const formatMoney = (intl, value) => {
 };
 
 /**
+ * Format a display-only USD estimate for a EUR Money value, e.g. "$56.03 USD"
+ * (in a Finnish locale: "$5 709,00 USD").
+ *
+ * The dollar sign always goes in front of the number (US convention) while the
+ * number itself follows the app locale's separators, and the trailing "USD"
+ * distinguishes the estimate from other dollar currencies.
+ *
+ * @param {Object} intl
+ * @param {Money} money price in EUR
+ * @param {number} eurUsdRate how many USD one EUR is worth
+ *
+ * @return {String|null} formatted USD estimate, or null when it can't be calculated
+ *   (missing/invalid rate, or the value isn't EUR Money)
+ */
+export const formatUsdEstimate = (intl, money, eurUsdRate) => {
+  const isValidRate = typeof eurUsdRate === 'number' && Number.isFinite(eurUsdRate) && eurUsdRate > 0;
+  const isEurMoney = money instanceof Money && money.currency === 'EUR';
+  if (!isValidRate || !isEurMoney) {
+    return null;
+  }
+  const usdAmount = convertMoneyToNumber(money) * eurUsdRate;
+  const formattedNumber = intl.formatNumber(usdAmount, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `$${formattedNumber} USD`;
+};
+
+/**
+ * Format a EUR Money value with a display-only USD estimate appended,
+ * e.g. "49,00 € (≈ $56.03 USD)". Falls back to the plain EUR format when the
+ * exchange rate isn't available. Checkout always charges in EUR.
+ *
+ * @param {Object} intl
+ * @param {Money} money price in EUR
+ * @param {number|null} eurUsdRate how many USD one EUR is worth
+ *
+ * @return {String} formatted price with or without the USD estimate
+ */
+export const appendUsdEstimate = (intl, money, eurUsdRate) => {
+  const formattedEur = formatMoney(intl, money);
+  const usdEstimate = formatUsdEstimate(intl, money, eurUsdRate);
+  return usdEstimate ? `${formattedEur} (≈ ${usdEstimate})` : formattedEur;
+};
+
+/**
  * Format the given major-unit string value as currency. E.g. "10" -> "$10".
  *
  * NOTE: This function should not be used with listing prices or other Money type.

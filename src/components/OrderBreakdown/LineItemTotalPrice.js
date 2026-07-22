@@ -1,6 +1,7 @@
 import React from 'react';
 import { FormattedMessage, intlShape } from '../../util/reactIntl';
-import { formatMoney } from '../../util/currency';
+import { formatMoney, formatUsdEstimate } from '../../util/currency';
+import { useEurUsdRate } from '../../util/exchangeRate';
 import { propTypes } from '../../util/types';
 import { resolveLatestProcessName, getProcess } from '../../transactions/transaction';
 
@@ -18,6 +19,7 @@ import css from './OrderBreakdown.module.css';
  */
 const LineItemTotalPrice = props => {
   const { transaction, isProvider, intl } = props;
+  const eurUsdRate = useEurUsdRate();
   const processName = resolveLatestProcessName(transaction?.attributes?.processName);
   if (!processName) {
     return null;
@@ -42,7 +44,11 @@ const LineItemTotalPrice = props => {
   const totalPrice = isProvider
     ? transaction.attributes.payoutTotal
     : transaction.attributes.payinTotal;
-  const formattedTotalPrice = formatMoney(intl, totalPrice);
+  const usdEstimate = formatUsdEstimate(intl, totalPrice, eurUsdRate);
+  const formattedEurPrice = formatMoney(intl, totalPrice);
+  const formattedTotalPrice = usdEstimate
+    ? `${formattedEurPrice} (≈ ${usdEstimate})`
+    : formattedEurPrice;
 
   return (
     <>
@@ -51,6 +57,11 @@ const LineItemTotalPrice = props => {
         <div className={css.totalLabel}>{totalLabel}</div>
         <div className={css.totalPrice}>{formattedTotalPrice}</div>
       </div>
+      {usdEstimate ? (
+        <span className={css.usdEstimateDisclaimer}>
+          <FormattedMessage id="OrderBreakdown.usdEstimateDisclaimer" />
+        </span>
+      ) : null}
     </>
   );
 };

@@ -22,7 +22,8 @@ import {
   STOCK_INFINITE_MULTIPLE_ITEMS,
   LISTING_STATE_PUBLISHED,
 } from '../../util/types';
-import { formatMoney } from '../../util/currency';
+import { appendUsdEstimate, formatMoney } from '../../util/currency';
+import { useEurUsdRate } from '../../util/exchangeRate';
 import { createSlug, parse, stringify } from '../../util/urlHelpers';
 import { userDisplayNameAsString } from '../../util/data';
 import {
@@ -105,9 +106,9 @@ const getCheapestPriceVariant = (priceVariants = []) => {
   }, priceVariants[0]);
 };
 
-const formatMoneyIfSupportedCurrency = (price, intl) => {
+const formatMoneyIfSupportedCurrency = (price, intl, eurUsdRate) => {
   try {
-    return formatMoney(intl, price);
+    return appendUsdEstimate(intl, price, eurUsdRate);
   } catch (e) {
     return `(${price.currency})`;
   }
@@ -150,6 +151,7 @@ const PriceMaybe = props => {
     showCurrencyMismatch = false,
   } = props;
   const { listingType, unitType } = publicData || {};
+  const eurUsdRate = useEurUsdRate();
 
   const foundListingTypeConfig = validListingTypes.find(conf => conf.listingType === listingType);
   const showPrice = displayPrice(foundListingTypeConfig);
@@ -163,7 +165,7 @@ const PriceMaybe = props => {
   // Get formatted price or currency code if the currency does not match with marketplace currency
   const { formattedPrice, priceTitle } = priceData(price, marketplaceCurrency, intl);
   const priceValue = (
-    <span className={css.priceValue}>{formatMoneyIfSupportedCurrency(price, intl)}</span>
+    <span className={css.priceValue}>{formatMoneyIfSupportedCurrency(price, intl, eurUsdRate)}</span>
   );
   const pricePerUnit = (
     <span className={css.perUnit}>

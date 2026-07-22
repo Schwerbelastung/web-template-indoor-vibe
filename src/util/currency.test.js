@@ -11,6 +11,8 @@ import {
   ensureSeparator,
   truncateToSubUnitPrecision,
   formatMoney,
+  formatUsdEstimate,
+  appendUsdEstimate,
 } from './currency';
 
 const { Money } = sdkTypes;
@@ -246,5 +248,74 @@ describe('currency utils', () => {
     // No test for that actual formatting for now. It depends on the
     // locale, and it doesn't really make sense to test the fake intl
     // implementation in the tests.
+  });
+});
+
+describe('USD estimate helpers', () => {
+  // Real Intl with a fixed locale, so expected strings are deterministic.
+  const intl = {
+    formatNumber: (value, options) => new Intl.NumberFormat('en-US', options).format(value),
+  };
+
+  describe('formatUsdEstimate()', () => {
+    it('formats the estimate with the given rate, rounded to cents', () => {
+      expect(formatUsdEstimate(intl, new Money(4900, 'EUR'), 1.1435)).toEqual('$56.03 USD');
+    });
+
+    it('formats large amounts with grouping', () => {
+      expect(formatUsdEstimate(intl, new Money(500000, 'EUR'), 1.1435)).toEqual('$5,717.50 USD');
+    });
+
+    it('formats a zero amount', () => {
+      expect(formatUsdEstimate(intl, new Money(0, 'EUR'), 1.1435)).toEqual('$0.00 USD');
+    });
+
+    it('keeps the dollar sign in front also in a Finnish locale', () => {
+      const fiIntl = {
+        formatNumber: (value, options) => new Intl.NumberFormat('fi-FI', options).format(value),
+      };
+      // Finnish grouping separator is a (non-breaking) space and decimal separator a comma;
+      // the exact space character varies between ICU versions, so match it loosely.
+      expect(formatUsdEstimate(fiIntl, new Money(500000, 'EUR'), 1.1435)).toMatch(
+        /^\$5\s717,50 USD$/u
+      );
+    });
+
+    it('returns null for missing or invalid rates', () => {
+      const money = new Money(4900, 'EUR');
+      expect(formatUsdEstimate(intl, money, null)).toBeNull();
+      expect(formatUsdEstimate(intl, money, undefined)).toBeNull();
+      expect(formatUsdEstimate(intl, money, 0)).toBeNull();
+      expect(formatUsdEstimate(intl, money, -1.14)).toBeNull();
+      expect(formatUsdEstimate(intl, money, NaN)).toBeNull();
+      expect(formatUsdEstimate(intl, money, Infinity)).toBeNull();
+      expect(formatUsdEstimate(intl, money, '1.14')).toBeNull();
+    });
+
+    it('returns null for non-EUR money', () => {
+      expect(formatUsdEstimate(intl, new Money(4900, 'USD'), 1.1435)).toBeNull();
+    });
+
+    it('returns null for values that are not Money', () => {
+      expect(formatUsdEstimate(intl, null, 1.1435)).toBeNull();
+      expect(formatUsdEstimate(intl, 4900, 1.1435)).toBeNull();
+      expect(formatUsdEstimate(intl, { amount: 4900, currency: 'EUR' }, 1.1435)).toBeNull();
+    });
+  });
+
+  describe('appendUsdEstimate()', () => {
+    it('appends the estimate to the EUR price', () => {
+      expect(appendUsdEstimate(intl, new Money(4900, 'EUR'), 1.1435)).toEqual(
+        '€49.00 (≈ $56.03 USD)'
+      );
+    });
+
+    it('falls back to the plain EUR price when the rate is unavailable', () => {
+      expect(appendUsdEstimate(intl, new Money(4900, 'EUR'), null)).toEqual('€49.00');
+    });
+
+    it('keeps complaining about incorrect value types like formatMoney does', () => {
+      expect(() => appendUsdEstimate(intl, null, 1.1435)).toThrow('Value must be a Money type');
+    });
   });
 });

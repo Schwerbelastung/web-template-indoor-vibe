@@ -765,6 +765,7 @@
   "OrderBreakdown.shippingFee": "Shipping",
   "OrderBreakdown.subTotal": "Subtotal",
   "OrderBreakdown.total": "Total price",
+  "OrderBreakdown.usdEstimateDisclaimer": "USD amount is an estimate; you will be charged in euros.",
   "OrderPanel.author": "{name}",
   "OrderPanel.closedListingButtonText": "Sorry, this listing has been closed.",
   "OrderPanel.ctaButtonMessageBooking": "Book now",

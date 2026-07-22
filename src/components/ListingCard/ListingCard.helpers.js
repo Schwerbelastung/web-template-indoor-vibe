@@ -1,5 +1,5 @@
 import { displayPrice, isPriceVariationsEnabled } from '../../util/configHelpers';
-import { formatMoney } from '../../util/currency';
+import { appendUsdEstimate } from '../../util/currency';
 import { richText } from '../../util/richText';
 import { isBookingProcessAlias } from '../../transactions/transaction';
 
@@ -7,9 +7,9 @@ import css from './ListingCard.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS = 10;
 
-const priceData = (price, currency, intl) => {
+const priceData = (price, currency, intl, eurUsdRate) => {
   if (price && price.currency === currency) {
-    const formattedPrice = formatMoney(intl, price);
+    const formattedPrice = appendUsdEstimate(intl, price, eurUsdRate);
     return { formattedPrice, priceTooltip: formattedPrice };
   } else if (price) {
     return {
@@ -33,6 +33,7 @@ const priceData = (price, currency, intl) => {
  * @param {Object} listing - API entity: listing or ownListing
  * @param {Object} config - app configuration (e.g. from useConfiguration())
  * @param {Object} intl - React Intl instance (e.g. from useIntl())
+ * @param {number|null} eurUsdRate - EUR->USD rate for the display-only estimate (e.g. from useEurUsdRate())
  * @returns {Object} translations and derived values:
  *   - titlePlain: raw title string (for aria/alt)
  *   - titleFormatted: React nodes from richText(title) for display
@@ -42,7 +43,7 @@ const priceData = (price, currency, intl) => {
  *   - cardAriaLabel: ready-to-use aria-label for the card link (listing title + price line when shown)
  *   - authorName: "ListingCard.author" string containing author's display name
  */
-export const getListingCardTranslations = (listing, config, intl) => {
+export const getListingCardTranslations = (listing, config, intl, eurUsdRate) => {
   const { title = '', price, publicData } = listing?.attributes || {};
 
   const authorDisplayName = listing?.author?.attributes?.profile?.displayName;
@@ -56,7 +57,7 @@ export const getListingCardTranslations = (listing, config, intl) => {
   const listingTypeConfig = validListingTypes.find(conf => conf.listingType === listingType);
 
   const showPrice = displayPrice(listingTypeConfig);
-  const { formattedPrice, priceTooltip } = priceData(price, config.currency, intl);
+  const { formattedPrice, priceTooltip } = priceData(price, config.currency, intl, eurUsdRate);
 
   const isPriceVariationsInUse = isPriceVariationsEnabled(publicData, listingTypeConfig);
   const hasMultiplePriceVariants = isPriceVariationsInUse && publicData?.priceVariants?.length > 1;

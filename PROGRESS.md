@@ -1,6 +1,6 @@
 # PROGRESS.md — build status
 
-**Current phase: 4 — Dual currency display, EUR + USD estimate (in progress).**
+**Current phase: 5A — Shopping cart: state + UI (in progress).**
 
 ## How to resume
 
@@ -19,8 +19,8 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
 | 1     | Running locally + test baseline         | ✅ done              |
 | 2     | New marketplace-wide font               | ✅ done              |
 | 3     | Experience badges (admin-set)           | ✅ done              |
-| 4     | Dual currency display (EUR + USD)       | 🔄 in progress       |
-| 5A    | Cart state + UI                         | pending              |
+| 4     | Dual currency display (EUR + USD)       | ✅ done              |
+| 5A    | Cart state + UI                         | 🔄 in progress       |
 | 5B    | One-payment cart checkout               | pending              |
 | 6     | 2-hour customer cancellation            | pending              |
 | 7     | Staging deploy (Render)                 | pending              |
@@ -86,6 +86,20 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
 - Discovery: marketplace language in Console was Finnish → Finnish number formatting
   ("5 000,00 €") and Finnish landing content. Plan says English-only → Vesa switches language
   to English in Console at the start of Phase 4.
+
+## Key facts & decisions (Phase 4)
+
+- `GET /api/exchange-rate` (`server/api/exchange-rate.js`): Frankfurter ECB EUR→USD, 12h in-memory
+  cache, serves stale on upstream error, `{rate: null}` if never fetched. Client: `getExchangeRate`
+  in `util/api.js`; `useEurUsdRate()` hook in `src/util/exchangeRate.js` (fetches once per session,
+  null during SSR). Utils in `util/currency.js`: `formatUsdEstimate` / `appendUsdEstimate`.
+- Surfaces: ListingCard (helpers get eurUsdRate param), OrderPanel PriceMaybe, OrderBreakdown
+  LineItemTotalPrice + disclaimer microcopy `OrderBreakdown.usdEstimateDisclaimer`.
+- **DECISION AMENDED by Vesa (2026-07-22): marketplace locale is FINNISH** (Console language =
+  Finnish; UI texts remain English via template en.json fallback). EUR renders "5 000,00 €".
+  USD estimate format: **"$5 709,00 USD"** — $ always in front, number in app locale, "USD"
+  suffix to disambiguate from other dollars. Full example: `5 000,00 € (≈ $5 704,00 USD)`.
+- E2E `currency.spec.js` requires the `(≈ $… USD)` pattern on a search card + listing page.
 
 ## Phase 1 credentials checklist (Vesa)
 

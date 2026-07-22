@@ -7,6 +7,7 @@ import { useConfiguration } from '../../context/configurationContext';
 
 import { useIntl } from '../../util/reactIntl';
 import { requireListingImage } from '../../util/configHelpers';
+import { useEurUsdRate } from '../../util/exchangeRate';
 import { lazyLoadWithDimensions } from '../../util/uiHelpers';
 import { createSlug } from '../../util/urlHelpers';
 
@@ -98,6 +99,7 @@ const ListingCardImage = props => {
 export const ListingCard = props => {
   const config = useConfiguration();
   const intl = props.intl || useIntl();
+  const eurUsdRate = useEurUsdRate();
 
   const {
     className,
@@ -111,7 +113,7 @@ export const ListingCard = props => {
     lazyLoadImage = true,
   } = props;
 
-  const translations = getListingCardTranslations(listing, config, intl);
+  const translations = getListingCardTranslations(listing, config, intl, eurUsdRate);
   const {
     titlePlain,
     titleFormatted,
