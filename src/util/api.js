@@ -117,6 +117,18 @@ export const getExchangeRate = () => {
   return request('/api/exchange-rate', { method: methods.GET });
 };
 
+// Finalize a paid cart order: decrements the stock of the extra cart items.
+// Idempotent — see `server/api/cart-finalize.js`.
+export const cartFinalize = body => {
+  return post('/api/cart-finalize', body);
+};
+
+// Restore the extra cart items' stock after a cancelled cart order.
+// Idempotent — see `server/api/cart-restore-stock.js`.
+export const cartRestoreStock = body => {
+  return post('/api/cart-restore-stock', body);
+};
+
 // Initiate a privileged transaction.
 //
 // With privileged transitions, the transactions need to be created

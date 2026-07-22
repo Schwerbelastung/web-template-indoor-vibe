@@ -30,6 +30,7 @@ import LineItemProviderCommissionRefundMaybe from './LineItemProviderCommissionR
 import LineItemRefundMaybe from './LineItemRefundMaybe';
 import LineItemTotalPrice from './LineItemTotalPrice';
 import LineItemUnknownItemsMaybe from './LineItemUnknownItemsMaybe';
+import LineItemCartItemsMaybe from './LineItemCartItemsMaybe';
 
 import css from './OrderBreakdown.module.css';
 
@@ -114,6 +115,12 @@ export const OrderBreakdownComponent = props => {
       />
 
       <LineItemBasePriceMaybe lineItems={lineItems} code={lineItemUnitType} intl={intl} />
+      <LineItemCartItemsMaybe
+        lineItems={lineItems}
+        protectedData={transaction?.attributes?.protectedData}
+        isProvider={isProvider}
+        intl={intl}
+      />
       <LineItemShippingFeeMaybe lineItems={lineItems} intl={intl} />
       <LineItemPickupFeeMaybe lineItems={lineItems} intl={intl} />
       <LineItemUnknownItemsMaybe lineItems={lineItems} isProvider={isProvider} intl={intl} />

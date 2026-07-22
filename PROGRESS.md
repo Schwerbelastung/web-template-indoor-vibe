@@ -1,15 +1,30 @@
 # PROGRESS.md — build status
 
-**Current phase: 5B — Shopping cart: one-payment checkout (in progress).**
+**Current phase: 6 — 2-hour customer cancellation window (in progress).**
 
 ## How to resume
 
 Open a terminal in this repo folder, run `claude`, and say:
 _"Read BUILD-PLAN.md and start from the current phase in PROGRESS.md."_
 
-Phases 0–1 approved & committed 2026-07-22. Phase 2 next: propose sporty Google Fonts →
-Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplaceDefaults.css`
-(+ `server/csp.js` if CDN-hosted), update snapshots, add font E2E assertion.
+Phases 0–5A approved & committed 2026-07-22.
+
+**Phase 5B in-progress design (decided with Vesa):** stock handling = option (a): post-payment
+`/api/cart-finalize` (idempotent through tx metadata `cartStockFinalized`; Integration SDK
+compareAndSet stock decrement; failures logged, never block the redirect; operator reconciles
+per docs/CART.md). Data flow: CartPage → CheckoutPage `setInitialValues` with
+`{ listing: primaryListing, orderData: { quantity, deliveryMethod, cartItems: [{listingId, quantity}] } }`
+→ `getOrderParams` adds cartItems → CheckoutPage.duck routes cartItems into the server-only
+`orderData` (initiate + speculate paths) → `initiate-privileged` validates via new
+`server/api-util/cartOrder.js` (same author, purchase process, published, stock, currency),
+enriches orderData with priced cart items, injects `protectedData.cartItems` (titles for
+rendering) → `lineItems.js` adds `line-item/cart-item-N` + commissions computed on the WHOLE
+payin (synthetic commission base). `transition-privileged` intentionally NOT cart-aware (cart
+checkout never starts from an inquiry). Delivery v1: primary listing's method (pickup when both
+enabled); extra items carry no delivery fee. Client cart cleared after finalize. Integration
+SDK dep added (`sharetribe-flex-integration-sdk@1.14.0`); `INTEGRATION_CLIENT_ID`/`SECRET`
+expected in `.env` (Vesa's Console task). Rendering: `LineItemCartItemsMaybe` in OrderBreakdown
++ prefix `line-item/cart-item-` excluded from LineItemUnknownItemsMaybe.
 
 ## Phase table
 
@@ -21,8 +36,8 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
 | 3     | Experience badges (admin-set)           | ✅ done              |
 | 4     | Dual currency display (EUR + USD)       | ✅ done              |
 | 5A    | Cart state + UI                         | ✅ done              |
-| 5B    | One-payment cart checkout               | 🔄 in progress       |
-| 6     | 2-hour customer cancellation            | pending              |
+| 5B    | One-payment cart checkout               | ✅ done              |
+| 6     | 2-hour customer cancellation            | 🔄 in progress       |
 | 7     | Staging deploy (Render)                 | pending              |
 | 8     | Going live                              | pending              |
 
@@ -120,6 +135,29 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
   cart adds are allowed (handy for testing; a real checkout of one's own listing fails anyway).
 - Vesa's Dev listings: "Exerpeutic 400XL" (6a60d73b-…, €5,000) and "Exerpeutic 525XLR"
   (6a60f221-ffc6-40fa-b25a-8a35a3425188, €2,500, stock 5).
+
+## Key facts & decisions (Phase 5B)
+
+- One-payment cart checkout **verified end-to-end with a real test payment**: buyer account,
+  2 listings, one PaymentIntent of €7,500; primary stock 5→4 (native reservation), extra item
+  3→2 via `/api/cart-finalize` + Integration API `stockAdjustments`; cart auto-cleared.
+- Server: `api-util/cartOrder.js` (validation: same author/purchase/published/stock/currency;
+  max 49 extras), `api-util/integrationSdk.js`, `api/cart-finalize.js` + `api/cart-restore-stock.js`
+  (idempotent via tx metadata `cartStockFinalized`/`cartStockRestored`; failures →
+  `cartStockErrors`/`cartRestoreErrors` for operator reconciliation, see docs/CART.md).
+  `lineItems.js`: `line-item/cart-item-N` + commissions on the whole payin (synthetic base).
+  `initiate-privileged.js` injects `protectedData.cartItems`; listingPromise includes author.
+- Client: cartItems ride orderData (CheckoutPage.duck initiate+speculate), `getOrderParams`
+  + finalize+clearCart in `CheckoutPageWithPayment.js` handleSubmit success (failures never
+  block redirect); CartPage checkout handler mimics ListingPage handleSubmit
+  (setInitialValues → /l/:slug/:id/checkout). `LineItemCartItemsMaybe` renders titles from
+  protectedData (LINE_ITEM_CART_ITEM_PREFIX excluded from UnknownItemsMaybe).
+- **Own listings never show Add to cart** (isOwnListing guard in ProductOrderForm);
+  e2e `own-listing.spec.js` gated on `E2E_SELLER_EMAIL`/`E2E_SELLER_PASSWORD`
+  (seller login = buyer email without the "2", same password — per Vesa).
+- `@payment`-tagged e2e (`cart-checkout.spec.js`) excluded from normal runs; run with
+  `$env:E2E_INCLUDE_PAYMENT="true"`. E2E test creds in .env are now the BUYER account.
+- Dev marketplace ID (from API logs): **indoorbikeparadise-dev** (needed for flex-cli in Phase 6).
 
 ## Phase 1 credentials checklist (Vesa)
 

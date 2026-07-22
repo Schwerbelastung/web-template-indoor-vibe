@@ -2,6 +2,7 @@ const {
   calculateQuantityFromDates,
   calculateQuantityFromHours,
   calculateShippingFee,
+  calculateTotalFromLineItems,
   getProviderCommissionMaybe,
   getCustomerCommissionMaybe,
 } = require('./lineItemHelpers');
@@ -237,13 +238,38 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
     includeFor: ['customer', 'provider'],
   };
 
+  // Cart orders: extra purchase listings from the same seller ride along as custom
+  // line items. These come from orderData.validatedCartItems, which is only ever set
+  // server-side after re-fetching and validating each listing (api-util/cartOrder.js) —
+  // client-sent prices are never used.
+  const validatedCartItems = orderData?.validatedCartItems || [];
+  const cartItemLineItems = validatedCartItems.map((item, index) => ({
+    code: `line-item/cart-item-${index + 1}`,
+    unitPrice: new Money(item.unitPriceAmount, item.currency),
+    quantity: item.quantity,
+    includeFor: ['customer', 'provider'],
+  }));
+
+  // Commission percentages must apply to the whole payin (base order + cart items),
+  // so for cart orders they are computed against a synthetic line covering the
+  // combined total. Without cart items this is the base order, exactly as before.
+  const commissionBase =
+    cartItemLineItems.length > 0
+      ? {
+          code,
+          unitPrice: calculateTotalFromLineItems([order, ...cartItemLineItems]),
+          quantity: 1,
+        }
+      : order;
+
   // Let's keep the base price (order) as first line item and provider and customer commissions as last.
   // Note: the order matters only if OrderBreakdown component doesn't recognize line-item.
   const lineItems = [
     order,
+    ...cartItemLineItems,
     ...extraLineItems,
-    ...getProviderCommissionMaybe(providerCommission, order, currency),
-    ...getCustomerCommissionMaybe(customerCommission, order, currency),
+    ...getProviderCommissionMaybe(providerCommission, commissionBase, currency),
+    ...getCustomerCommissionMaybe(customerCommission, commissionBase, currency),
   ];
 
   return lineItems;

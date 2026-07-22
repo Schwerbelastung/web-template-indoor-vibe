@@ -11,6 +11,10 @@ import { propTypes } from '../../util/types';
 import { ensureTransaction } from '../../util/data';
 import { createSlug } from '../../util/urlHelpers';
 import { isTransactionInitiateListingNotFoundError } from '../../util/errors';
+import { cartFinalize } from '../../util/api';
+import * as log from '../../util/log';
+
+import { clearCart } from '../../ducks/cart.duck';
 import {
   getProcess,
   resolveLatestProcessName,
@@ -127,6 +131,11 @@ const getOrderParams = (
 
   const customerDefaultMessageMaybe = customerDefaultMessage ? { customerDefaultMessage } : {};
 
+  // Cart checkout: extra items ([{ listingId, quantity }]) travel to the app's
+  // own server, which prices and validates them (see server/api-util/cartOrder.js).
+  const cartItems = pageData.orderData?.cartItems;
+  const cartItemsMaybe = cartItems?.length ? { cartItems } : {};
+
   const protectedDataMaybe = {
     protectedData: {
       ...getTransactionTypeData(listingType, unitType, config),
@@ -152,6 +161,7 @@ const getOrderParams = (
     ...deliveryMethodMaybe,
     ...quantityMaybe,
     ...seatsMaybe,
+    ...cartItemsMaybe,
     ...bookingDatesMaybe(pageData.orderData?.bookingDates),
     ...priceVariantNameMaybe,
     ...protectedDataMaybe,
@@ -333,16 +343,30 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
       const { orderId, paymentMethodSaved } = response;
       setSubmitting(false);
 
-      const orderDetailsPath = pathByRouteName('OrderDetailsPage', routeConfiguration, {
-        id: orderId.uuid,
-      });
-      const initialValues = {
-        savePaymentMethodFailed: !paymentMethodSaved,
-      };
+      // Cart orders: decrement the extra items' stock (idempotent server call)
+      // and clear the cart. Failures never block the customer — the server
+      // records them for operator reconciliation (see docs/CART.md).
+      const cartItems = pageData?.orderData?.cartItems;
+      const cartCleanupMaybe = cartItems?.length
+        ? cartFinalize({ transactionId: orderId.uuid })
+            .then(() => dispatch(clearCart()))
+            .catch(e => {
+              log.error(e, 'cart-finalize-failed', { transactionId: orderId.uuid });
+            })
+        : Promise.resolve();
 
-      setOrderPageInitialValues(initialValues, routeConfiguration, dispatch);
-      onSubmitCallback();
-      history.push(orderDetailsPath);
+      return cartCleanupMaybe.then(() => {
+        const orderDetailsPath = pathByRouteName('OrderDetailsPage', routeConfiguration, {
+          id: orderId.uuid,
+        });
+        const initialValues = {
+          savePaymentMethodFailed: !paymentMethodSaved,
+        };
+
+        setOrderPageInitialValues(initialValues, routeConfiguration, dispatch);
+        onSubmitCallback();
+        history.push(orderDetailsPath);
+      });
     })
     .catch(err => {
       console.error(err);

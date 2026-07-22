@@ -2,7 +2,7 @@ import React from 'react';
 import { intlShape } from '../../util/reactIntl';
 import { formatMoney } from '../../util/currency';
 import { humanizeLineItemCode } from '../../util/data';
-import { LINE_ITEMS, propTypes } from '../../util/types';
+import { LINE_ITEMS, LINE_ITEM_CART_ITEM_PREFIX, propTypes } from '../../util/types';
 
 import css from './OrderBreakdown.module.css';
 
@@ -28,7 +28,13 @@ const LineItemUnknownItemsMaybe = props => {
   const { lineItems, isProvider, intl } = props;
 
   // resolve unknown non-reversal line items
-  const allItems = lineItems.filter(item => LINE_ITEMS.indexOf(item.code) === -1 && !item.reversal);
+  // (cart items have their own component: LineItemCartItemsMaybe)
+  const allItems = lineItems.filter(
+    item =>
+      LINE_ITEMS.indexOf(item.code) === -1 &&
+      !item.code.startsWith(LINE_ITEM_CART_ITEM_PREFIX) &&
+      !item.reversal
+  );
 
   const items = isProvider
     ? allItems.filter(item => item.includeFor.includes('provider'))

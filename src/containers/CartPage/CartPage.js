@@ -1,15 +1,19 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 
 import { useConfiguration } from '../../context/configurationContext';
+import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
 import { formatMoney, formatUsdEstimate } from '../../util/currency';
 import { useEurUsdRate } from '../../util/exchangeRate';
+import { createResourceLocatorString, findRouteByRouteName } from '../../util/routes';
 import { types as sdkTypes } from '../../util/sdkLoader';
 import { createSlug } from '../../util/urlHelpers';
 
 import { getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 import { isScrollingDisabled } from '../../ducks/ui.duck';
+import { initializeCardPaymentData } from '../../ducks/stripe.duck.js';
 import { getCart, cartItemCount, setCartItemQuantity, removeFromCart } from '../../ducks/cart.duck';
 
 import {
@@ -150,6 +154,8 @@ const CartPage = () => {
   const intl = useIntl();
   const config = useConfiguration();
   const dispatch = useDispatch();
+  const history = useHistory();
+  const routeConfiguration = useRouteConfiguration();
   const eurUsdRate = useEurUsdRate();
 
   const currentUser = useSelector(state => state.user.currentUser);
@@ -176,6 +182,54 @@ const CartPage = () => {
 
   const availableItems = items.filter(i => stockOf(findListing(i.listingId)) > 0);
   const hasUnavailableItems = items.length > availableItems.length;
+  const hasStockShortage = items.some(i => {
+    const listing = findListing(i.listingId);
+    return listing && i.quantity > stockOf(listing);
+  });
+  const primaryItem = items[0];
+  const primaryListing =
+    primaryItem && !fetchInProgress ? findListing(primaryItem.listingId) : null;
+  const canCheckout =
+    items.length > 0 &&
+    !hasUnavailableItems &&
+    !hasStockShortage &&
+    !!primaryListing &&
+    !saveInProgress;
+
+  // Single payment for the whole cart: the first item is the transacted listing
+  // and the rest travel as orderData.cartItems — the same handoff to CheckoutPage
+  // that a listing page "Buy now" does (see ListingPage.shared.js handleSubmit).
+  const handleProceedToCheckout = () => {
+    if (!canCheckout) {
+      return;
+    }
+    const { pickupEnabled, shippingEnabled } = primaryListing.attributes.publicData || {};
+    // v1: the whole order uses the primary listing's delivery setup; pickup wins
+    // when both are enabled (see docs/CART.md).
+    const deliveryMethod = pickupEnabled ? 'pickup' : shippingEnabled ? 'shipping' : 'none';
+
+    const initialValues = {
+      listing: primaryListing,
+      orderData: {
+        quantity: primaryItem.quantity,
+        deliveryMethod,
+        cartItems: items.slice(1).map(({ listingId, quantity }) => ({ listingId, quantity })),
+      },
+      confirmPaymentError: null,
+    };
+
+    const { setInitialValues } = findRouteByRouteName('CheckoutPage', routeConfiguration);
+    dispatch(setInitialValues(initialValues, false));
+    dispatch(initializeCardPaymentData());
+    history.push(
+      createResourceLocatorString(
+        'CheckoutPage',
+        routeConfiguration,
+        { id: primaryListing.id.uuid, slug: createSlug(primaryListing.attributes.title) },
+        {}
+      )
+    );
+  };
   const subtotalAmount = availableItems.reduce((sum, i) => {
     const listing = findListing(i.listingId);
     const price = listing?.attributes?.price;
@@ -262,12 +316,19 @@ const CartPage = () => {
                     ) : null}
                   </span>
                 </div>
-                <PrimaryButton className={css.checkoutButton} disabled>
+                <PrimaryButton
+                  className={css.checkoutButton}
+                  onClick={handleProceedToCheckout}
+                  disabled={!canCheckout}
+                  data-testid="cart-checkout-button"
+                >
                   <FormattedMessage id="CartPage.checkoutButton" />
                 </PrimaryButton>
-                <p className={css.checkoutNote}>
-                  <FormattedMessage id="CartPage.checkoutComingSoon" />
-                </p>
+                {!canCheckout ? (
+                  <p className={css.checkoutNote}>
+                    <FormattedMessage id="CartPage.checkoutBlocked" />
+                  </p>
+                ) : null}
               </div>
             </>
           )}

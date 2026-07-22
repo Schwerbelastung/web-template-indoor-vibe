@@ -300,7 +300,7 @@ const renderForm = formRenderProps => {
             <FormattedMessage id="ProductOrderForm.ctaButtonNoStock" />
           )}
         </PrimaryButton>
-        {typeof onAddToCart === 'function' && hasStock ? (
+        {typeof onAddToCart === 'function' && hasStock && !isOwnListing ? (
           <SecondaryButton
             type="button"
             className={css.addToCartButton}

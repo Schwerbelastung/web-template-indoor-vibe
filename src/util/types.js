@@ -408,6 +408,9 @@ export const LINE_ITEM_CUSTOMER_COMMISSION = 'line-item/customer-commission';
 export const LINE_ITEM_PROVIDER_COMMISSION = 'line-item/provider-commission';
 export const LINE_ITEM_SHIPPING_FEE = 'line-item/shipping-fee';
 export const LINE_ITEM_PICKUP_FEE = 'line-item/pickup-fee';
+// Shopping-cart extra items use codes line-item/cart-item-1, -2, ... (see
+// server/api-util/cartOrder.js). They are rendered by LineItemCartItemsMaybe.
+export const LINE_ITEM_CART_ITEM_PREFIX = 'line-item/cart-item-';
 
 export const LINE_ITEMS = [
   LINE_ITEM_NIGHT,

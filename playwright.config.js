@@ -14,6 +14,9 @@ module.exports = defineConfig({
   timeout: 90 * 1000,
   expect: { timeout: 20 * 1000 },
   retries: 0,
+  // Tests tagged @payment complete a real (test-mode) Stripe payment, so they
+  // only run when explicitly requested: $env:E2E_INCLUDE_PAYMENT="true"
+  grepInvert: process.env.E2E_INCLUDE_PAYMENT ? undefined : /@payment/,
   reporter: [['list']],
   use: {
     baseURL: remoteBaseUrl || 'http://localhost:3000',
