@@ -17,6 +17,7 @@
 import * as Avatar from './components/Avatar/Avatar.example';
 import * as Button from './components/Button/Button.example';
 import * as ExpandingTextarea from './components/ExpandingTextarea/ExpandingTextarea.example';
+import * as ExperienceBadge from './components/ExperienceBadge/ExperienceBadge.example';
 import * as EstimatedCustomerBreakdownMaybe from './components/OrderPanel/EstimatedCustomerBreakdownMaybe.example';
 import * as FileUpload from './components/FileUpload/FileUpload.example';
 import * as DatePicker from './components/DatePicker/DatePickers/DatePicker.example';
@@ -159,6 +160,7 @@ export {
   InquiryForm,
   EstimatedCustomerBreakdownMaybe,
   ExpandingTextarea,
+  ExperienceBadge,
   FileUpload,
   FieldBoolean,
   FieldCheckbox,

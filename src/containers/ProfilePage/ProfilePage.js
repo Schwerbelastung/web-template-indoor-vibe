@@ -44,6 +44,7 @@ import {
   LayoutSideNavigation,
   NamedRedirect,
   CustomExtendedDataSection,
+  ExperienceBadge,
 } from '../../components';
 
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
@@ -293,6 +294,7 @@ export const MainContent = props => {
       <H2 as="h1" className={css.desktopHeading}>
         <FormattedMessage id="ProfilePage.desktopHeading" values={{ name: displayName }} />
       </H2>
+      <ExperienceBadge className={css.experienceBadge} metadata={metadata} />
       {hasBio ? <p className={css.bio}>{bioWithLinks}</p> : null}
 
       {displayName ? (

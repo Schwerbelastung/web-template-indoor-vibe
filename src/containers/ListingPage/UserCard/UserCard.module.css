@@ -152,3 +152,11 @@
   composes: a from global;
   font-weight: var(--fontWeightMedium);
 }
+
+.experienceBadge {
+  margin: 6px 0;
+
+  @media (--viewportMedium) {
+    margin: 0 0 8px 0;
+  }
+}

@@ -7,7 +7,7 @@ import { richText } from '../../../util/richText';
 import { ensureUser, ensureCurrentUser } from '../../../util/data';
 import { propTypes } from '../../../util/types';
 
-import { AvatarLarge, NamedLink, InlineTextButton } from '../../../components';
+import { AvatarLarge, ExperienceBadge, NamedLink, InlineTextButton } from '../../../components';
 
 import css from './UserCard.module.css';
 
@@ -97,7 +97,7 @@ const UserCard = props => {
   const ensuredCurrentUser = ensureCurrentUser(currentUser);
   const isCurrentUser =
     ensuredUser.id && ensuredCurrentUser.id && ensuredUser.id.uuid === ensuredCurrentUser.id.uuid;
-  const { displayName, bio } = ensuredUser.attributes.profile;
+  const { displayName, bio, metadata } = ensuredUser.attributes.profile;
 
   const handleContactUserClick = () => {
     onContactUser(user);
@@ -160,6 +160,7 @@ const UserCard = props => {
             <FormattedMessage id="UserCard.heading" values={{ name: displayName }} />
             {editProfileDesktop}
           </div>
+          <ExperienceBadge className={css.experienceBadge} metadata={metadata} />
           {hasBio ? <ExpandableBio className={css.desktopBio} bio={bio} /> : null}
           {links}
         </div>

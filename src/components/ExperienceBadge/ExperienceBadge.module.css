@@ -1,0 +1,39 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 3px 12px;
+  border-radius: 999px;
+  border-style: solid;
+  border-width: 1px;
+
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: var(--fontWeightMedium);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/* Tier accents: bronze (1+ years), silver (2+ years), gold (3+ years) */
+.tierBronze {
+  background-color: #f9f1e7;
+  border-color: #d9b48f;
+  color: #8a5a2a;
+}
+
+.tierSilver {
+  background-color: #f2f4f6;
+  border-color: #bfc9d2;
+  color: #4c5a66;
+}
+
+.tierGold {
+  background-color: #fdf6dd;
+  border-color: #e0c565;
+  color: #86691a;
+}

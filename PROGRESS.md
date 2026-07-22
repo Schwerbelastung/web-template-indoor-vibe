@@ -1,6 +1,6 @@
 # PROGRESS.md — build status
 
-**Current phase: 3 — Experience badges, admin-set (in progress).**
+**Current phase: 4 — Dual currency display, EUR + USD estimate (in progress).**
 
 ## How to resume
 
@@ -18,8 +18,8 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
 | 0     | Orientation & bootstrap                 | ✅ done              |
 | 1     | Running locally + test baseline         | ✅ done              |
 | 2     | New marketplace-wide font               | ✅ done              |
-| 3     | Experience badges (admin-set)           | 🔄 in progress       |
-| 4     | Dual currency display (EUR + USD)       | pending              |
+| 3     | Experience badges (admin-set)           | ✅ done              |
+| 4     | Dual currency display (EUR + USD)       | 🔄 in progress       |
 | 5A    | Cart state + UI                         | pending              |
 | 5B    | One-payment cart checkout               | pending              |
 | 6     | 2-hour customer cancellation            | pending              |
@@ -69,6 +69,23 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
 - Known flake: LandingPage/Terms/Privacy(/ListingPage) "Fallback page on error" suites time out
   when the machine is busy (cold cache or parallel e2e). Re-run alone before diagnosing.
   Avoid running Jest and Playwright simultaneously.
+
+## Key facts & decisions (Phase 3)
+
+- Badge = profile `metadata.indoorExperienceYears` ("1"|"2"|"3"); component
+  `src/components/ExperienceBadge/` (pill, bronze/silver/gold, bike icon, null on invalid);
+  rendered in ProfilePage MainContent + ListingPage UserCard. Admin guide: `docs/BADGES.md`.
+  Styleguide preview: `/styleguide/c/ExperienceBadge` (registered in `src/examples.js`).
+- Jest test convention: microcopy renders as **keys** in tests (testHelpers maps every message
+  to its own key) — assert `'ExperienceBadge.oneYear'`, not English text.
+- **Full Jest runs: use `$env:CI="true"; yarn test --runInBand`** (serial, like the template's
+  own CI). Parallel workers cause false timeouts in the 4 lazy-loading page suites.
+- E2E badge test: set `$env:E2E_BADGE_USER_ID="6a60cd57-499d-4f59-928e-2d64ce842134"`
+  (Vesa's badge-holding Dev test user, gold tier). His test listing (purchase type):
+  `6a60d73b-3864-4d11-9aa1-b899a62cd676` ("Exerpeutic 400XL Recumbent Bike", €5,000).
+- Discovery: marketplace language in Console was Finnish → Finnish number formatting
+  ("5 000,00 €") and Finnish landing content. Plan says English-only → Vesa switches language
+  to English in Console at the start of Phase 4.
 
 ## Phase 1 credentials checklist (Vesa)
 

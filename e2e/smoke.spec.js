@@ -49,5 +49,6 @@ test('a listing page shows a price', async ({ page }) => {
   await listingCard.click();
   await expect(page).toHaveURL(/\/l\//);
   // Marketplace currency is EUR, so the listing page should show a euro price.
-  await expect(page.getByText(/€\s?\d/).first()).toBeVisible();
+  // Accept the € on either side of the number so the test is locale-agnostic.
+  await expect(page.getByText(/(€\s?\d)|(\d\s?€)/).first()).toBeVisible();
 });
