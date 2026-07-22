@@ -1,13 +1,44 @@
 # PROGRESS.md — build status
 
-**Current phase: 6 — 2-hour customer cancellation window (in progress).**
+**Current phase: 7 — Staging deploy to Render (in progress).**
 
 ## How to resume
 
 Open a terminal in this repo folder, run `claude`, and say:
 _"Read BUILD-PLAN.md and start from the current phase in PROGRESS.md."_
 
-Phases 0–5A approved & committed 2026-07-22.
+Phases 0–5B approved & committed 2026-07-22.
+
+**Phase 6 SHIPPED (2026-07-23): processes v2 live in Dev, aliases release-1 → v2.** Live-verified:
+automated buy→countdown→cancel→refund (purchase). Manual rental-cancel + cart-cancel checks done
+by Vesa at approval. Cancel e2e: `e2e/cancel.spec.js` (@payment). Original design notes below.
+
+**Phase 6 design (decided with Vesa):**
+- Booking accept-window: **option (i)** — provider `accept` stays `:from :state/preauthorized`
+  only; provider waits max 2h. Cancel inside window = release preauth (never captured).
+- Both edn processes: `confirm-payment :to :state/cancellation-window`; add
+  `:transition/customer-cancel` (actor customer; booking actions
+  [calculate-full-refund, stripe-refund-payment, decline-booking] — booking still *pending*;
+  purchase actions [calculate-full-refund, stripe-refund-payment, cancel-stock-reservation],
+  stock/booking action LAST) → cancelled/canceled; and `:transition/close-cancellation-window`
+  (`:at {:fn/plus [{:fn/timepoint [:time/first-entered-state :state/cancellation-window]}
+  {:fn/period ["PT2H"]}]}`, actions []) → preauthorized (booking) / purchased (purchase).
+- Notifications for customer-cancel: reuse existing templates (plan-sanctioned): booking →
+  :booking-declined-request (to customer) + :booking-operator-declined-request (to provider);
+  purchase → :purchase-order-canceled-to-customer + -to-provider. Copy polish deferred to Phase 8.
+- Known edge (accepted): bookings whose booking-end falls inside the 2h window get auto-expired
+  right after the window closes (`:fn/min` in booking `expire`) — money always refunded, safe.
+- Client: ActionButtons gets `hoursSinceTransition` condition type (+30s ticking re-render so the
+  button hides live at expiry) and an optional `countdown: {sinceTransition, hours, translationKey}`
+  on buttonProps rendering "cancellable for another X h Y min". stateData files get
+  CANCELLATION_WINDOW conds (customer: cancel button; provider: info heading). Old in-flight txs
+  whose lastTransition is confirm-payment render as cancellation-window — the >2h hide condition
+  keeps the stale cancel button away (tiny <2h deploy edge accepted in Dev).
+- Purchase customer-cancel with cartItems → TransactionPage.duck transition-success hook calls
+  `cartRestoreStock({transactionId})` (endpoint from 5B; idempotent).
+- delete-account.js: add 'cancellation-window' to both stripeRelatedStates arrays.
+- flex-cli 1.16.0 installed globally; marketplace id `indoorbikeparadise-dev`; Vesa logs in
+  (`flex-cli login`) with his own API key. Pull → edit → validate → push → client → alias.
 
 **Phase 5B in-progress design (decided with Vesa):** stock handling = option (a): post-payment
 `/api/cart-finalize` (idempotent through tx metadata `cartStockFinalized`; Integration SDK
@@ -37,8 +68,8 @@ expected in `.env` (Vesa's Console task). Rendering: `LineItemCartItemsMaybe` in
 | 4     | Dual currency display (EUR + USD)       | ✅ done              |
 | 5A    | Cart state + UI                         | ✅ done              |
 | 5B    | One-payment cart checkout               | ✅ done              |
-| 6     | 2-hour customer cancellation            | 🔄 in progress       |
-| 7     | Staging deploy (Render)                 | pending              |
+| 6     | 2-hour customer cancellation            | ✅ done              |
+| 7     | Staging deploy (Render)                 | 🔄 in progress       |
 | 8     | Going live                              | pending              |
 
 ## Key facts & decisions (Phase 0)

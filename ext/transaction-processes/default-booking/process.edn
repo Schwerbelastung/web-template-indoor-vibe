@@ -40,6 +40,24 @@
    :actor :actor.role/customer,
    :actions [{:name :action/stripe-confirm-payment-intent}],
    :from :state/pending-payment,
+   :to :state/cancellation-window}
+  {:name :transition/customer-cancel,
+   :actor :actor.role/customer,
+   :actions
+   [{:name :action/calculate-full-refund}
+    {:name :action/stripe-refund-payment}
+    ;; The booking is still in 'pending' state here (not accepted yet),
+    ;; so it is released with decline-booking. Keep this action last.
+    {:name :action/decline-booking}],
+   :from :state/cancellation-window,
+   :to :state/cancelled}
+  {:name :transition/close-cancellation-window,
+   :at
+   {:fn/plus
+    [{:fn/timepoint [:time/first-entered-state :state/cancellation-window]}
+     {:fn/period ["PT2H"]}]},
+   :actions [],
+   :from :state/cancellation-window,
    :to :state/preauthorized}
   {:name :transition/accept,
    :actor :actor.role/provider,
@@ -164,6 +182,14 @@
    :on :transition/confirm-payment,
    :to :actor.role/provider,
    :template :booking-new-request}
+  {:name :notification/booking-customer-cancelled-to-customer,
+   :on :transition/customer-cancel,
+   :to :actor.role/customer,
+   :template :booking-declined-request}
+  {:name :notification/booking-customer-cancelled-to-provider,
+   :on :transition/customer-cancel,
+   :to :actor.role/provider,
+   :template :booking-operator-declined-request}
   {:name :notification/booking-accepted-request,
    :on :transition/accept,
    :to :actor.role/customer,

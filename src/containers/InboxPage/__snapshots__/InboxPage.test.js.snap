@@ -136,6 +136,78 @@ exports[`InboxPage InboxItem: default-booking process with "day" check booking: 
 </div>
 `;
 
+exports[`InboxPage InboxItem: default-booking process with "day" check booking: transition/close-cancellation-window 1`] = `
+<div
+  class="item"
+>
+  <div
+    class="itemAvatar"
+  >
+    <a
+      class="root"
+      href="/u/customer"
+      title="customer display name"
+    >
+      <span
+        class="initials"
+      >
+        TT
+      </span>
+    </a>
+  </div>
+  <a
+    class="itemLink"
+    href="/sale/id-booking-CLOSE_CANCELLATION_WINDOW-sale"
+  >
+    <div
+      class="rowNotificationDot"
+    >
+      <div
+        class="notificationDot"
+      />
+    </div>
+    <div
+      class="itemUsername"
+    >
+      <span
+        class=""
+      >
+        customer display name
+      </span>
+    </div>
+    <div
+      class="itemTitle"
+    >
+      listing-day title
+    </div>
+    <div
+      class="itemDetails"
+    >
+      <div
+        class="root"
+      >
+        <span
+          class="dateSection"
+        >
+          Jun 14, 2022
+        </span>
+      </div>
+    </div>
+    <div
+      class="itemState"
+    >
+      <div
+        class="stateName stateActionNeeded"
+      >
+        <span>
+          InboxPage.default-booking.preauthorized.status
+        </span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+
 exports[`InboxPage InboxItem: default-booking process with "day" check booking: transition/complete 1`] = `
 <div
   class="item"
@@ -229,11 +301,7 @@ exports[`InboxPage InboxItem: default-booking process with "day" check booking: 
   >
     <div
       class="rowNotificationDot"
-    >
-      <div
-        class="notificationDot"
-      />
-    </div>
+    />
     <div
       class="itemUsername"
     >
@@ -265,10 +333,78 @@ exports[`InboxPage InboxItem: default-booking process with "day" check booking: 
       class="itemState"
     >
       <div
-        class="stateName stateActionNeeded"
+        class="stateName stateNoActionNeeded"
       >
         <span>
-          InboxPage.default-booking.preauthorized.status
+          InboxPage.default-booking.cancellation-window.status
+        </span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+
+exports[`InboxPage InboxItem: default-booking process with "day" check booking: transition/customer-cancel 1`] = `
+<div
+  class="item"
+>
+  <div
+    class="itemAvatar"
+  >
+    <a
+      class="root"
+      href="/u/customer"
+      title="customer display name"
+    >
+      <span
+        class="initials"
+      >
+        TT
+      </span>
+    </a>
+  </div>
+  <a
+    class="itemLink"
+    href="/sale/id-booking-CUSTOMER_CANCEL-sale"
+  >
+    <div
+      class="rowNotificationDot"
+    />
+    <div
+      class="itemUsername"
+    >
+      <span
+        class=""
+      >
+        customer display name
+      </span>
+    </div>
+    <div
+      class="itemTitle"
+    >
+      listing-day title
+    </div>
+    <div
+      class="itemDetails"
+    >
+      <div
+        class="root"
+      >
+        <span
+          class="dateSection"
+        >
+          Jun 14, 2022
+        </span>
+      </div>
+    </div>
+    <div
+      class="itemState"
+    >
+      <div
+        class="stateName stateConcluded stateNoActionNeeded"
+      >
+        <span>
+          InboxPage.default-booking.canceled.status
         </span>
       </div>
     </div>
@@ -1490,6 +1626,74 @@ exports[`InboxPage InboxItem: default-booking process with "hour" check booking:
 </div>
 `;
 
+exports[`InboxPage InboxItem: default-booking process with "hour" check booking: transition/close-cancellation-window 1`] = `
+<div
+  class="item"
+>
+  <div
+    class="itemAvatar"
+  >
+    <a
+      class="root"
+      href="/u/provider"
+      title="provider display name"
+    >
+      <span
+        class="initials"
+      >
+        TT
+      </span>
+    </a>
+  </div>
+  <a
+    class="itemLink"
+    href="/order/id-booking-CLOSE_CANCELLATION_WINDOW-order"
+  >
+    <div
+      class="rowNotificationDot"
+    />
+    <div
+      class="itemUsername"
+    >
+      <span
+        class=""
+      >
+        provider display name
+      </span>
+    </div>
+    <div
+      class="itemTitle"
+    >
+      listing-hour title
+    </div>
+    <div
+      class="itemDetails"
+    >
+      <div
+        class="root"
+      >
+        <span
+          class="dateSection"
+        >
+          Jun 14, 2022, 10:00 AM - 1:00 PM
+        </span>
+      </div>
+    </div>
+    <div
+      class="itemState"
+    >
+      <div
+        class="stateName stateNoActionNeeded"
+      >
+        <span>
+          InboxPage.default-booking.preauthorized.status
+        </span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+
 exports[`InboxPage InboxItem: default-booking process with "hour" check booking: transition/complete 1`] = `
 <div
   class="item"
@@ -1618,7 +1822,75 @@ exports[`InboxPage InboxItem: default-booking process with "hour" check booking:
         class="stateName stateNoActionNeeded"
       >
         <span>
-          InboxPage.default-booking.preauthorized.status
+          InboxPage.default-booking.cancellation-window.status
+        </span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+
+exports[`InboxPage InboxItem: default-booking process with "hour" check booking: transition/customer-cancel 1`] = `
+<div
+  class="item"
+>
+  <div
+    class="itemAvatar"
+  >
+    <a
+      class="root"
+      href="/u/provider"
+      title="provider display name"
+    >
+      <span
+        class="initials"
+      >
+        TT
+      </span>
+    </a>
+  </div>
+  <a
+    class="itemLink"
+    href="/order/id-booking-CUSTOMER_CANCEL-order"
+  >
+    <div
+      class="rowNotificationDot"
+    />
+    <div
+      class="itemUsername"
+    >
+      <span
+        class=""
+      >
+        provider display name
+      </span>
+    </div>
+    <div
+      class="itemTitle"
+    >
+      listing-hour title
+    </div>
+    <div
+      class="itemDetails"
+    >
+      <div
+        class="root"
+      >
+        <span
+          class="dateSection"
+        >
+          Jun 14, 2022, 10:00 AM - 1:00 PM
+        </span>
+      </div>
+    </div>
+    <div
+      class="itemState"
+    >
+      <div
+        class="stateName stateConcluded stateNoActionNeeded"
+      >
+        <span>
+          InboxPage.default-booking.canceled.status
         </span>
       </div>
     </div>
@@ -5513,11 +5785,7 @@ exports[`InboxPage InboxItem: default-purchase process with "item" InboxItem wit
   >
     <div
       class="rowNotificationDot"
-    >
-      <div
-        class="notificationDot"
-      />
-    </div>
+    />
     <div
       class="itemUsername"
     >
@@ -5539,10 +5807,10 @@ exports[`InboxPage InboxItem: default-purchase process with "item" InboxItem wit
       class="itemState"
     >
       <div
-        class="stateName stateActionNeeded"
+        class="stateName stateNoActionNeeded"
       >
         <span>
-          InboxPage.default-purchase.purchased.status
+          InboxPage.default-purchase.cancellation-window.status
         </span>
       </div>
     </div>
@@ -5922,7 +6190,7 @@ exports[`InboxPage InboxItem: default-purchase process with "item" check purchas
 </div>
 `;
 
-exports[`InboxPage InboxItem: default-purchase process with "item" check purchase: transition/confirm-payment 1`] = `
+exports[`InboxPage InboxItem: default-purchase process with "item" check purchase: transition/close-cancellation-window 1`] = `
 <div
   class="item"
 >
@@ -5943,7 +6211,7 @@ exports[`InboxPage InboxItem: default-purchase process with "item" check purchas
   </div>
   <a
     class="itemLink"
-    href="/sale/id-purchase-CONFIRM_PAYMENT-sale"
+    href="/sale/id-purchase-CLOSE_CANCELLATION_WINDOW-sale"
   >
     <div
       class="rowNotificationDot"
@@ -5981,6 +6249,130 @@ exports[`InboxPage InboxItem: default-purchase process with "item" check purchas
       >
         <span>
           InboxPage.default-purchase.purchased.status
+        </span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+
+exports[`InboxPage InboxItem: default-purchase process with "item" check purchase: transition/confirm-payment 1`] = `
+<div
+  class="item"
+>
+  <div
+    class="itemAvatar"
+  >
+    <a
+      class="root"
+      href="/u/customer"
+      title="customer display name"
+    >
+      <span
+        class="initials"
+      >
+        TT
+      </span>
+    </a>
+  </div>
+  <a
+    class="itemLink"
+    href="/sale/id-purchase-CONFIRM_PAYMENT-sale"
+  >
+    <div
+      class="rowNotificationDot"
+    />
+    <div
+      class="itemUsername"
+    >
+      <span
+        class=""
+      >
+        customer display name
+      </span>
+    </div>
+    <div
+      class="itemTitle"
+    >
+      listing1 title
+    </div>
+    <div
+      class="itemDetails"
+    >
+      <span>
+        InboxPage.quantity
+      </span>
+    </div>
+    <div
+      class="itemState"
+    >
+      <div
+        class="stateName stateNoActionNeeded"
+      >
+        <span>
+          InboxPage.default-purchase.cancellation-window.status
+        </span>
+      </div>
+    </div>
+  </a>
+</div>
+`;
+
+exports[`InboxPage InboxItem: default-purchase process with "item" check purchase: transition/customer-cancel 1`] = `
+<div
+  class="item"
+>
+  <div
+    class="itemAvatar"
+  >
+    <a
+      class="root"
+      href="/u/customer"
+      title="customer display name"
+    >
+      <span
+        class="initials"
+      >
+        TT
+      </span>
+    </a>
+  </div>
+  <a
+    class="itemLink"
+    href="/sale/id-purchase-CUSTOMER_CANCEL-sale"
+  >
+    <div
+      class="rowNotificationDot"
+    />
+    <div
+      class="itemUsername"
+    >
+      <span
+        class=""
+      >
+        customer display name
+      </span>
+    </div>
+    <div
+      class="itemTitle"
+    >
+      listing1 title
+    </div>
+    <div
+      class="itemDetails"
+    >
+      <span>
+        InboxPage.quantity
+      </span>
+    </div>
+    <div
+      class="itemState"
+    >
+      <div
+        class="stateName stateConcluded stateNoActionNeeded"
+      >
+        <span>
+          InboxPage.default-purchase.canceled.status
         </span>
       </div>
     </div>

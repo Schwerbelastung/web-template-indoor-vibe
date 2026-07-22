@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import { useIntl } from '../../../util/reactIntl';
@@ -26,11 +26,51 @@ const hasReachedMaxDurationSinceTransition = (condition, transitions, timeZone) 
 const hasReachedMaxTransitions = (condition, transitions) => {
   return transitions.length >= condition.max;
 };
+
+// Hour-granularity variant of durationSinceTransition: the condition is met
+// when more than condition.hours have passed since the given transition.
+// Used e.g. to hide the customer-cancel button after the 2-hour window.
+const hasReachedMaxHoursSinceTransition = (condition, transitions) => {
+  const sinceTransition = transitions.find(t => t.transition === condition.sinceTransition);
+  if (sinceTransition) {
+    const expiresAtMs =
+      new Date(sinceTransition.createdAt).getTime() + condition.hours * 60 * 60 * 1000;
+    return Date.now() > expiresAtMs;
+  }
+  return false;
+};
+
+// A small ticking hint like "You can still cancel for 1 h 23 min", driven by
+// buttonProps.countdown: { sinceTransition, hours, translationKey }.
+const CountdownHintMaybe = ({ countdown, transitions, intl }) => {
+  if (!countdown) {
+    return null;
+  }
+  const sinceTransition = transitions.find(t => t.transition === countdown.sinceTransition);
+  if (!sinceTransition) {
+    return null;
+  }
+  const msLeft =
+    new Date(sinceTransition.createdAt).getTime() + countdown.hours * 60 * 60 * 1000 - Date.now();
+  if (msLeft <= 0) {
+    return null;
+  }
+  const hours = Math.floor(msLeft / (60 * 60 * 1000));
+  const minutes = Math.ceil((msLeft % (60 * 60 * 1000)) / (60 * 1000));
+  return (
+    <div className={css.finePrint}>
+      {intl.formatMessage({ id: countdown.translationKey }, { hours, minutes })}
+    </div>
+  );
+};
 const checkCondition = (condition, additionalInfo) => {
   const { transitions, timeZone, listingTypeConfig } = additionalInfo;
 
   if (condition.type === 'durationSinceTransition') {
     return hasReachedMaxDurationSinceTransition(condition, transitions, timeZone);
+  }
+  if (condition.type === 'hoursSinceTransition') {
+    return hasReachedMaxHoursSinceTransition(condition, transitions);
   }
   if (condition.type === 'maxTransitions') {
     return hasReachedMaxTransitions(condition, transitions);
@@ -165,6 +205,21 @@ const ActionButtons = props => {
 
   const intl = useIntl();
 
+  // Time-based conditions and countdowns need periodic re-evaluation so a
+  // button hides itself (and the countdown ticks) without a page refresh.
+  const allButtonProps = [primaryButtonProps, secondaryButtonProps, tertiaryButtonProps];
+  const hasTimeSensitiveButtons = allButtonProps.some(
+    bp => bp?.countdown || bp?.conditions?.some(c => c.type === 'hoursSinceTransition')
+  );
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    if (!hasTimeSensitiveButtons) {
+      return undefined;
+    }
+    const id = setInterval(() => setNowTick(tick => tick + 1), 30 * 1000);
+    return () => clearInterval(id);
+  }, [hasTimeSensitiveButtons]);
+
   if (isListingDeleted && isProvider) {
     return null;
   }
@@ -228,6 +283,11 @@ const ActionButtons = props => {
                   {primaryButtonProps.buttonText}
                 </PrimaryButton>
                 {disabled && <div className={css.finePrint}>{reason}</div>}
+                <CountdownHintMaybe
+                  countdown={primaryButtonProps.countdown}
+                  transitions={transitions}
+                  intl={intl}
+                />
               </div>
             ) : null;
           }

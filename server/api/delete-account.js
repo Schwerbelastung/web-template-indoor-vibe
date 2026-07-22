@@ -2,12 +2,14 @@ const { getSdk, getTrustedSdk, handleError, serialize } = require('../api-util/s
 
 const stripeRelatedStatesForBookings = [
   'state/pending-payment',
+  'state/cancellation-window',
   'state/preauthorized',
   'state/accepted',
   'state/delivered',
 ];
 const stripeRelatedStatesForPurchases = [
   'state/pending-payment',
+  'state/cancellation-window',
   'state/purchased',
   'state/delivered',
   'state/disputed',

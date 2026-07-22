@@ -29,6 +29,12 @@ export const transitions = {
   // to tell that the payment is confirmed.
   CONFIRM_PAYMENT: 'transition/confirm-payment',
 
+  // After payment the customer has a 2-hour window to cancel with a full refund
+  // (the card was only preauthorized, so cancelling releases the hold).
+  // The window closes automatically and the request proceeds to the provider.
+  CUSTOMER_CANCEL: 'transition/customer-cancel',
+  CLOSE_CANCELLATION_WINDOW: 'transition/close-cancellation-window',
+
   // If the payment is not confirmed in the time limit set in transaction process (by default 15min)
   // the transaction will expire automatically.
   EXPIRE_PAYMENT: 'transition/expire-payment',
@@ -78,6 +84,7 @@ export const states = {
   INQUIRY: 'inquiry',
   PENDING_PAYMENT: 'pending-payment',
   PAYMENT_EXPIRED: 'payment-expired',
+  CANCELLATION_WINDOW: 'cancellation-window',
   PREAUTHORIZED: 'preauthorized',
   DECLINED: 'declined',
   ACCEPTED: 'accepted',
@@ -124,7 +131,14 @@ export const graph = {
     [states.PENDING_PAYMENT]: {
       on: {
         [transitions.EXPIRE_PAYMENT]: states.PAYMENT_EXPIRED,
-        [transitions.CONFIRM_PAYMENT]: states.PREAUTHORIZED,
+        [transitions.CONFIRM_PAYMENT]: states.CANCELLATION_WINDOW,
+      },
+    },
+
+    [states.CANCELLATION_WINDOW]: {
+      on: {
+        [transitions.CUSTOMER_CANCEL]: states.CANCELED,
+        [transitions.CLOSE_CANCELLATION_WINDOW]: states.PREAUTHORIZED,
       },
     },
 
@@ -181,6 +195,7 @@ export const isRelevantPastTransition = transition => {
   return [
     transitions.ACCEPT,
     transitions.OPERATOR_ACCEPT,
+    transitions.CUSTOMER_CANCEL,
     transitions.CANCEL,
     transitions.COMPLETE,
     transitions.OPERATOR_COMPLETE,
@@ -241,6 +256,7 @@ export const isRefunded = transition => {
   const txRefundedTransitions = [
     transitions.EXPIRE_PAYMENT,
     transitions.EXPIRE,
+    transitions.CUSTOMER_CANCEL,
     transitions.CANCEL,
     transitions.DECLINE,
   ];

@@ -11,7 +11,7 @@ import {
   stringifyDateToISO8601,
 } from '../../util/dates';
 import { isTransactionsTransitionInvalidTransition, storableError } from '../../util/errors';
-import { transactionLineItems, transitionPrivileged } from '../../util/api';
+import { cartRestoreStock, transactionLineItems, transitionPrivileged } from '../../util/api';
 import * as log from '../../util/log';
 import {
   updatedEntities,
@@ -377,6 +377,16 @@ const makeTransitionPayloadCreator = (
     .then(response => {
       dispatch(addMarketplaceEntities(response));
       dispatch(fetchCurrentUserNotifications());
+
+      // A customer-cancelled cart order needs the extra items' stock restored —
+      // the process itself only releases the primary listing's stock. The call is
+      // idempotent and failures are only logged (operator reconciles, docs/CART.md).
+      const cartItems = transaction?.attributes?.protectedData?.cartItems;
+      if (transitionName === 'transition/customer-cancel' && cartItems?.length) {
+        cartRestoreStock({ transactionId: txId.uuid }).catch(e => {
+          log.error(e, 'cart-restore-stock-failed', { transactionId: txId.uuid });
+        });
+      }
 
       // There could be automatic transitions after this transition
       // For example mark-received-from-purchased > auto-complete.

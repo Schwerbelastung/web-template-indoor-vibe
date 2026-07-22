@@ -21,6 +21,9 @@ export const getStateDataForPurchaseProcess = (txInfo, processInfo) => {
     .cond([states.PENDING_PAYMENT, PROVIDER], () => {
       return { processName, processState, actionNeeded: true };
     })
+    .cond([states.CANCELLATION_WINDOW, _], () => {
+      return { processName, processState };
+    })
     .cond([states.CANCELED, _], () => {
       return { processName, processState, isFinal: true };
     })

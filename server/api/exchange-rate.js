@@ -11,8 +11,12 @@
 
 const FRANKFURTER_URL = 'https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD';
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+// After a failed upstream fetch, wait before retrying so an outage doesn't
+// get hammered on every page view.
+const FAILURE_COOLDOWN_MS = 60 * 1000;
 
 let cached = null; // { base, rate, date, fetchedAt }
+let lastFailureAt = 0;
 
 const fetchRateFromFrankfurter = async () => {
   const response = await fetch(FRANKFURTER_URL);
@@ -30,12 +34,14 @@ const fetchRateFromFrankfurter = async () => {
 module.exports = async (req, res) => {
   const now = Date.now();
   const isFresh = cached && now - cached.fetchedAt < CACHE_TTL_MS;
+  const isInFailureCooldown = lastFailureAt > 0 && now - lastFailureAt < FAILURE_COOLDOWN_MS;
 
-  if (!isFresh) {
+  if (!isFresh && !isInFailureCooldown) {
     try {
       const fresh = await fetchRateFromFrankfurter();
       cached = { ...fresh, fetchedAt: now };
     } catch (e) {
+      lastFailureAt = now;
       console.error(`exchange-rate: fetching a fresh rate failed: ${e.message}`);
     }
   }

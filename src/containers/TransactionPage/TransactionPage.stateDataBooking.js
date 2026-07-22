@@ -41,6 +41,35 @@ export const getStateDataForBookingProcess = (txInfo, processInfo) => {
     .cond([states.INQUIRY, PROVIDER], () => {
       return { processName, processState, showDetailCardHeadings: true };
     })
+    .cond([states.CANCELLATION_WINDOW, CUSTOMER], () => {
+      return {
+        processName,
+        processState,
+        showDetailCardHeadings: true,
+        showActionButtons: true,
+        primaryButtonProps: actionButtonProps(transitions.CUSTOMER_CANCEL, CUSTOMER, {
+          conditions: [
+            {
+              type: 'hoursSinceTransition',
+              action: 'disable',
+              sinceTransition: transitions.CONFIRM_PAYMENT,
+              hours: 2,
+              disabledReason: {
+                translationKey: 'TransactionPage.cancellationWindowClosed',
+              },
+            },
+          ],
+          countdown: {
+            sinceTransition: transitions.CONFIRM_PAYMENT,
+            hours: 2,
+            translationKey: 'TransactionPage.cancellationCountdown',
+          },
+        }),
+      };
+    })
+    .cond([states.CANCELLATION_WINDOW, PROVIDER], () => {
+      return { processName, processState, showDetailCardHeadings: true };
+    })
     .cond([states.PREAUTHORIZED, CUSTOMER], () => {
       return { processName, processState, showDetailCardHeadings: true, showExtraInfo: true };
     })

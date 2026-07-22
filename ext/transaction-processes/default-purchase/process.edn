@@ -30,6 +30,23 @@
     {:name :action/stripe-confirm-payment-intent}
     {:name :action/stripe-capture-payment-intent}],
    :from :state/pending-payment,
+   :to :state/cancellation-window}
+  {:name :transition/customer-cancel,
+   :actor :actor.role/customer,
+   :actions
+   [{:name :action/calculate-full-refund}
+    {:name :action/stripe-refund-payment}
+    ;; Keep the stock action last in the list of actions for the transition
+    {:name :action/cancel-stock-reservation}],
+   :from :state/cancellation-window,
+   :to :state/canceled}
+  {:name :transition/close-cancellation-window,
+   :at
+   {:fn/plus
+    [{:fn/timepoint [:time/first-entered-state :state/cancellation-window]}
+     {:fn/period ["PT2H"]}]},
+   :actions [],
+   :from :state/cancellation-window,
    :to :state/purchased}
   {:name :transition/expire-payment,
    :at
@@ -253,6 +270,14 @@
    :template :purchase-order-canceled-to-customer}
   {:name :notification/order-canceled,
    :on :transition/cancel,
+   :to :actor.role/provider,
+   :template :purchase-order-canceled-to-provider}
+  {:name :notification/purchase-customer-canceled-to-customer,
+   :on :transition/customer-cancel,
+   :to :actor.role/customer,
+   :template :purchase-order-canceled-to-customer}
+  {:name :notification/purchase-customer-canceled-to-provider,
+   :on :transition/customer-cancel,
    :to :actor.role/provider,
    :template :purchase-order-canceled-to-provider}
   {:name :notification/purchase-order-auto-marked-as-received-customer,
