@@ -77,6 +77,7 @@
     "@babel/preset-typescript": "7.29.7",
     "@loadable/babel-plugin": "^5.16.1",
     "@loadable/webpack-plugin": "^5.15.2",
+    "@playwright/test": "^1.61.1",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.6.2",
     "@rushstack/eslint-patch": "^1.16.1",
     "@svgr/webpack": "^8.1.0",
@@ -223,6 +224,7 @@
     "start": "node server/index.js",
     "dev-server": "cross-env-shell NODE_ENV=development PORT=4000 REACT_APP_MARKETPLACE_ROOT_URL=http://localhost:4000 \"yarn run build&&nodemon --watch server server/index.js\"",
     "test-server": "jest --roots ./server --testMatch='**/server/**/*.test.js' --testEnvironment=node",
+    "test:e2e": "playwright test",
     "heroku-postbuild": "yarn run build",
     "postinstall": "patch-package",
     "translate": "node scripts/translations.js"

@@ -5,6 +5,9 @@ node_modules
 
 # testing
 coverage
+e2e/test-results
+playwright-report
+.last-run.json
 
 # production
 build

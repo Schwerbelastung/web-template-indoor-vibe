@@ -1,24 +1,23 @@
 # PROGRESS.md — build status
 
-**Current phase: 1 — Running locally + test baseline (in progress).**
+**Current phase: 2 — New marketplace-wide font (in progress; Vesa picks the font).**
 
 ## How to resume
 
 Open a terminal in this repo folder, run `claude`, and say:
 _"Read BUILD-PLAN.md and start from the current phase in PROGRESS.md."_
 
-Phase 0 approved & committed 2026-07-22. Phase 1 sequence: `yarn install` → Vesa runs
-`yarn run config` himself (client ID/secret, Stripe pk_test, Mapbox) → Console tasks (EUR currency,
-two listing types, Stripe sk_test saved) → `yarn run dev` manual checks → Jest baseline →
-add Playwright smoke tests (`e2e/smoke.spec.js`, `playwright.config.js`, `test:e2e` script).
+Phases 0–1 approved & committed 2026-07-22. Phase 2 next: propose sporty Google Fonts →
+Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplaceDefaults.css`
+(+ `server/csp.js` if CDN-hosted), update snapshots, add font E2E assertion.
 
 ## Phase table
 
 | Phase | Name                                    | Status               |
 | ----- | --------------------------------------- | -------------------- |
 | 0     | Orientation & bootstrap                 | ✅ done              |
-| 1     | Running locally + test baseline         | 🔄 in progress       |
-| 2     | New marketplace-wide font               | pending              |
+| 1     | Running locally + test baseline         | ✅ done              |
+| 2     | New marketplace-wide font               | 🔄 in progress       |
 | 3     | Experience badges (admin-set)           | pending              |
 | 4     | Dual currency display (EUR + USD)       | pending              |
 | 5A    | Cart state + UI                         | pending              |
@@ -43,6 +42,21 @@ add Playwright smoke tests (`e2e/smoke.spec.js`, `playwright.config.js`, `test:e
   Console overrides it — EUR gets set in Console in Phase 1. `.env` doesn't exist yet (created via
   `yarn run config` in Phase 1); `.gitignore` covers `.env`.
 - **Docs:** local Sharetribe docs confirmed reachable at `..\dev-docs-main\dev-docs-main\content\`.
+
+## Key facts & decisions (Phase 1)
+
+- App runs locally against the Dev marketplace; Console has EUR + "Daily rental" and "Buy bikes"
+  listing types; `.env` filled by Vesa via `yarn run config` (gitignored, verified).
+- Playwright `@playwright/test@1.61.1` added; `e2e/smoke.spec.js` (3 tests: landing hero, search
+  results/empty-state, listing price — the last one skips until a listing exists);
+  `playwright.config.js` honors `PLAYWRIGHT_BASE_URL` for remote runs (Phase 7) and otherwise
+  starts/reuses the dev server on :3000. Run with `yarn run test:e2e`.
+- Jest baseline: 69 suites / 1069 tests green. Note: on a *cold* cache (first run after install)
+  4 page-suites can time out (lazy-loaded chunks + slow disk/Dropbox) — re-run before diagnosing.
+- Landing-page content in Console is Finnish (auto-generated); microcopy is default English.
+  Decide before go-live (plan says English-only). Not a code issue.
+- Dev server for this workspace: `.claude/launch.json` (parent folder) runs
+  `yarn --cwd web-template-indoor-vibe run dev`, port 3000.
 
 ## Phase 1 credentials checklist (Vesa)
 
