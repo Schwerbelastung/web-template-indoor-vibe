@@ -83,7 +83,7 @@
   --colorStatusFinalState: var(--colorGrey600);
 
   /* ================ Font ================ */
-  --fontFamily: -apple-system, BlinkMacSystemFont, 'Inter', Helvetica, Arial, sans-serif,
+  --fontFamily: 'Sora', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 
   --fontWeightRegular: 400;
@@ -91,7 +91,8 @@
   --fontWeightSemiBold: 600;
   --fontWeightBold: 700;
   --fontWeightHeavy: 800;
-  --fontWeightBlack: 900;
+  /* Sora's heaviest weight is 800 */
+  --fontWeightBlack: 800;
 
   --fontWeightHighlightEmail: var(--fontWeightBold);
 

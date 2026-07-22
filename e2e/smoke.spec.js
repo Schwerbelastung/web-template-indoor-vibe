@@ -14,6 +14,17 @@ test('landing page loads and shows the hero section', async ({ page }) => {
   await expect(hero).not.toBeEmpty();
 });
 
+test('the Sora brand font is applied and actually loaded', async ({ page }) => {
+  await page.goto('/');
+  const fontFamily = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
+  expect(fontFamily).toContain('Sora');
+  const soraLoaded = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return document.fonts.check('16px Sora') && document.fonts.check('800 16px Sora');
+  });
+  expect(soraLoaded).toBe(true);
+});
+
 test('search page renders results or an empty-state message', async ({ page }) => {
   await page.goto('/s');
   const listingCard = page.locator('a[href*="/l/"]:not([href="/l/new"])').first();

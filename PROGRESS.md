@@ -1,6 +1,6 @@
 # PROGRESS.md — build status
 
-**Current phase: 2 — New marketplace-wide font (in progress; Vesa picks the font).**
+**Current phase: 3 — Experience badges, admin-set (in progress).**
 
 ## How to resume
 
@@ -17,8 +17,8 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
 | ----- | --------------------------------------- | -------------------- |
 | 0     | Orientation & bootstrap                 | ✅ done              |
 | 1     | Running locally + test baseline         | ✅ done              |
-| 2     | New marketplace-wide font               | 🔄 in progress       |
-| 3     | Experience badges (admin-set)           | pending              |
+| 2     | New marketplace-wide font               | ✅ done              |
+| 3     | Experience badges (admin-set)           | 🔄 in progress       |
 | 4     | Dual currency display (EUR + USD)       | pending              |
 | 5A    | Cart state + UI                         | pending              |
 | 5B    | One-payment cart checkout               | pending              |
@@ -57,6 +57,18 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
   Decide before go-live (plan says English-only). Not a code issue.
 - Dev server for this workspace: `.claude/launch.json` (parent folder) runs
   `yarn --cwd web-template-indoor-vibe run dev`, port 3000.
+
+## Key facts & decisions (Phase 2)
+
+- Font: **Sora** (Vesa's pick), self-hosted variable font at `public/static/fonts/sora/`
+  (2 woff2 files, latin + latin-ext, weights 100–800 in one file). `@font-face` + preload in
+  `public/index.html`; stack + weights in `marketplaceDefaults.css` (`--fontWeightBlack`
+  remapped 900→800 — Sora's max). Stripe card iframe fonts via css2 URL in
+  `StripePaymentForm.js`. No CSP change needed (self-hosted = `self`).
+- E2E has a font-loaded assertion (smoke.spec.js). Jest snapshots unaffected by font change.
+- Known flake: LandingPage/Terms/Privacy(/ListingPage) "Fallback page on error" suites time out
+  when the machine is busy (cold cache or parallel e2e). Re-run alone before diagnosing.
+  Avoid running Jest and Playwright simultaneously.
 
 ## Phase 1 credentials checklist (Vesa)
 
