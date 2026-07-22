@@ -71,6 +71,14 @@
   }
 }
 
+.addToCartButton {
+  margin-top: 12px;
+
+  @media (--viewportMedium) {
+    margin-top: 16px;
+  }
+}
+
 .finePrint {
   composes: marketplaceTinyFontStyles from global;
   text-align: center;

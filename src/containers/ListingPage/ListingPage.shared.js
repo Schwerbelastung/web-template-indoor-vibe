@@ -326,6 +326,44 @@ export const handleContactUser = parameters => () => {
 };
 
 /**
+ * Handle adding the current listing to the shopping cart.
+ * Guests are redirected to the signup page. When the cart already holds items
+ * from another seller, onAddToCart resolves with requiresReplace: true and the
+ * replace-cart modal is opened instead of saving anything.
+ *
+ * @param {Object} parameters all the info needed to add the listing to the cart.
+ */
+export const handleAddToCart = parameters => ({ quantity, replaceExisting = false }) => {
+  const {
+    history,
+    location,
+    routes,
+    currentUser,
+    listing,
+    onAddToCart,
+    setReplaceCartState,
+  } = parameters;
+
+  if (!currentUser) {
+    // Signup first, then return to this listing page.
+    const state = { from: `${location.pathname}${location.search}${location.hash}` };
+    history.push(createResourceLocatorString('SignupPage', routes, {}, {}), state);
+    return Promise.resolve();
+  }
+
+  return onAddToCart({ listing, quantity, replaceExisting }).then(result => {
+    if (result?.requiresReplace) {
+      setReplaceCartState({
+        isOpen: true,
+        quantity,
+        currentAuthorName: result.currentAuthorName,
+      });
+    }
+    return result;
+  });
+};
+
+/**
  * Callback for the inquiry modal to submit aka create inquiry transaction on ListingPage.
  * Note: this is for booking and purchase processes. Inquiry process is handled through handleSubmit.
  *

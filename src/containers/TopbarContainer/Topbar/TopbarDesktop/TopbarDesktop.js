@@ -5,6 +5,7 @@ import { FormattedMessage } from '../../../../util/reactIntl';
 import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
 import {
   Avatar,
+  IconCart,
   InlineTextButton,
   LinkedLogo,
   Menu,
@@ -13,6 +14,7 @@ import {
   MenuItem,
   NamedLink,
 } from '../../../../components';
+import { getCart, cartItemCount } from '../../../../ducks/cart.duck';
 
 import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
 import CustomLinksMenu from './CustomLinksMenu/CustomLinksMenu';
@@ -34,6 +36,21 @@ const LoginLink = () => {
     <NamedLink id="login-link" name="LoginPage" className={css.topbarLink}>
       <span className={css.topbarLinkLabel}>
         <FormattedMessage id="TopbarDesktop.login" />
+      </span>
+    </NamedLink>
+  );
+};
+
+const CartLink = ({ cartCount, title }) => {
+  const countBadge =
+    cartCount > 0 ? (
+      <span className={css.cartCount}>{cartCount > 99 ? '99+' : cartCount}</span>
+    ) : null;
+  return (
+    <NamedLink id="cart-link" className={css.cartLink} name="CartPage" title={title}>
+      <span className={css.cartIconWrapper}>
+        <IconCart rootClassName={css.cartIcon} />
+        {countBadge}
       </span>
     </NamedLink>
   );
@@ -166,6 +183,13 @@ const TopbarDesktop = props => {
   const giveSpaceForSearch = customLinks == null || customLinks?.length === 0;
   const classes = classNames(rootClassName || css.root, className);
 
+  const cartLinkMaybe = authenticatedOnClientSide ? (
+    <CartLink
+      cartCount={cartItemCount(getCart(currentUser))}
+      title={intl.formatMessage({ id: 'TopbarDesktop.cart' })}
+    />
+  ) : null;
+
   const inboxLinkMaybe = authenticatedOnClientSide ? (
     <InboxLink notificationCount={notificationCount} inboxTab={inboxTab} />
   ) : null;
@@ -221,6 +245,7 @@ const TopbarDesktop = props => {
         showCreateListingsLink={showCreateListingsLink}
       />
 
+      {cartLinkMaybe}
       {inboxLinkMaybe}
       {profileMenuMaybe}
       {signupLinkMaybe}

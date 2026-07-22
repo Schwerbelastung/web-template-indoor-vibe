@@ -12,6 +12,7 @@ import { OFFER, REQUEST } from '../../transactions/transaction';
 import { getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
 import { initializeCardPaymentData } from '../../ducks/stripe.duck.js';
+import { addToCart } from '../../ducks/cart.duck';
 
 // Shared components
 import {
@@ -41,6 +42,7 @@ import {
   LoadingPage,
   ErrorPage,
   handleContactUser,
+  handleAddToCart,
   handleSubmitInquiry,
   handleNavigateToMakeOfferPage,
   handleNavigateToRequestQuotePage,
@@ -48,6 +50,7 @@ import {
   priceForSchemaMaybe,
   getDerivedRenderData,
 } from './ListingPage.shared';
+import ReplaceCartModal from './ReplaceCartModal/ReplaceCartModal';
 import Notifications from './Notifications/Notifications';
 import SectionReviews from './SectionReviews';
 import SectionAuthorMaybe from './SectionAuthorMaybe';
@@ -64,6 +67,7 @@ export const ListingPageComponent = props => {
   const [inquiryModalOpen, setInquiryModalOpen] = useState(
     props.inquiryModalOpenForListingId === props.params.id
   );
+  const [replaceCartState, setReplaceCartState] = useState({ isOpen: false });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -89,6 +93,8 @@ export const ListingPageComponent = props => {
     callSetInitialValues,
     onSendInquiry,
     onInitializeCardPaymentData,
+    onAddToCart,
+    addToCartInProgress,
     config,
     routeConfiguration,
     showOwnListingsOnly,
@@ -180,6 +186,16 @@ export const ListingPageComponent = props => {
     getListing,
     onSendInquiry,
     setInquiryModalOpen,
+  });
+
+  const onAddToCartSubmit = handleAddToCart({
+    history,
+    location,
+    routes: routeConfiguration,
+    currentUser,
+    listing: currentListing,
+    onAddToCart,
+    setReplaceCartState,
   });
 
   const handleOrderSubmit = values => {
@@ -330,6 +346,8 @@ export const ListingPageComponent = props => {
               author={ensuredAuthor}
               onManageDisableScrolling={onManageDisableScrolling}
               onContactUser={onContactUser}
+              onAddToCart={onAddToCartSubmit}
+              addToCartInProgress={addToCartInProgress}
               {...restOfProps}
               validListingTypes={config.listing.listingTypes}
               marketplaceCurrency={config.currency}
@@ -339,6 +357,17 @@ export const ListingPageComponent = props => {
             />
           </div>
         </div>
+        <ReplaceCartModal
+          id="ListingPageCarousel.replaceCart"
+          isOpen={replaceCartState.isOpen}
+          onClose={() => setReplaceCartState({ isOpen: false })}
+          onConfirm={() => {
+            setReplaceCartState({ isOpen: false });
+            onAddToCartSubmit({ quantity: replaceCartState.quantity, replaceExisting: true });
+          }}
+          currentAuthorName={replaceCartState.currentAuthorName}
+          onManageDisableScrolling={onManageDisableScrolling}
+        />
       </LayoutSingleColumn>
     </Page>
   );
@@ -397,6 +426,7 @@ const ListingPage = props => {
   } = useSelector(state => state.ListingPage);
   const currentUser = useSelector(state => state.user?.currentUser);
   const scrollingDisabled = useSelector(state => isScrollingDisabled(state));
+  const addToCartInProgress = useSelector(state => state.cart.saveInProgress);
 
   const getListing = useCallback(
     id => {
@@ -434,6 +464,7 @@ const ListingPage = props => {
   const onSendInquiry = useCallback((listing, message) => dispatch(sendInquiry(listing, message)), [
     dispatch,
   ]);
+  const onAddToCart = useCallback(params => dispatch(addToCart(params)), [dispatch]);
   const onInitializeCardPaymentData = useCallback(() => dispatch(initializeCardPaymentData()), [
     dispatch,
   ]);
@@ -469,6 +500,8 @@ const ListingPage = props => {
       onSendInquiry={onSendInquiry}
       onInitializeCardPaymentData={onInitializeCardPaymentData}
       onFetchTimeSlots={onFetchTimeSlots}
+      onAddToCart={onAddToCart}
+      addToCartInProgress={addToCartInProgress}
     />
   );
 };

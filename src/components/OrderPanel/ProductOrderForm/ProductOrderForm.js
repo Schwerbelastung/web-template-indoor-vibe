@@ -12,6 +12,7 @@ import {
   FieldTextInput,
   InlineTextButton,
   PrimaryButton,
+  SecondaryButton,
   H3,
   H6,
 } from '../../../components';
@@ -134,6 +135,8 @@ const renderForm = formRenderProps => {
     payoutDetailsWarning,
     marketplaceName,
     values,
+    onAddToCart,
+    addToCartInProgress,
   } = formRenderProps;
 
   // Note: don't add custom logic before useEffect
@@ -186,6 +189,18 @@ const renderForm = formRenderProps => {
       formApi.focus('deliveryMethod');
     } else {
       handleSubmit(e);
+    }
+  };
+
+  // Add-to-cart uses the same quantity guard as submit: focus the quantity
+  // field if it's not filled in yet, otherwise hand the value to the cart.
+  const handleAddToCartClick = () => {
+    const { quantity } = values || {};
+    if (!quantity || quantity < 1) {
+      formApi.blur('quantity');
+      formApi.focus('quantity');
+    } else {
+      onAddToCart({ quantity: Number.parseInt(quantity, 10) });
     }
   };
 
@@ -285,6 +300,17 @@ const renderForm = formRenderProps => {
             <FormattedMessage id="ProductOrderForm.ctaButtonNoStock" />
           )}
         </PrimaryButton>
+        {typeof onAddToCart === 'function' && hasStock ? (
+          <SecondaryButton
+            type="button"
+            className={css.addToCartButton}
+            inProgress={addToCartInProgress}
+            disabled={submitDisabled || addToCartInProgress}
+            onClick={handleAddToCartClick}
+          >
+            <FormattedMessage id="ProductOrderForm.addToCartButton" />
+          </SecondaryButton>
+        ) : null}
       </div>
       <p className={css.finePrint}>
         {payoutDetailsWarning ? (

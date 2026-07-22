@@ -18,3 +18,6 @@ Quick facts:
 - Hosted Console assets override local config. Console changes are Vesa's tasks — print exact
   steps as "YOUR TASKS (in Console)" and wait for his confirmation.
 - Use PowerShell-compatible commands only (e.g. `$env:CI="true"; yarn test`, never `CI=true ...`).
+- Full Jest runs: `$env:CI="true"; yarn test --runInBand` (parallel workers cause false timeouts).
+- Git commits: write the message with the Bash tool via heredoc (`git commit -F - <<'EOF'`) —
+  PowerShell 5.1 mangles messages containing double quotes.

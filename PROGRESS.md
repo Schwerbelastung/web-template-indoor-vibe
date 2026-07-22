@@ -1,6 +1,6 @@
 # PROGRESS.md — build status
 
-**Current phase: 5A — Shopping cart: state + UI (in progress).**
+**Current phase: 5B — Shopping cart: one-payment checkout (in progress).**
 
 ## How to resume
 
@@ -20,8 +20,8 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
 | 2     | New marketplace-wide font               | ✅ done              |
 | 3     | Experience badges (admin-set)           | ✅ done              |
 | 4     | Dual currency display (EUR + USD)       | ✅ done              |
-| 5A    | Cart state + UI                         | 🔄 in progress       |
-| 5B    | One-payment cart checkout               | pending              |
+| 5A    | Cart state + UI                         | ✅ done              |
+| 5B    | One-payment cart checkout               | 🔄 in progress       |
 | 6     | 2-hour customer cancellation            | pending              |
 | 7     | Staging deploy (Render)                 | pending              |
 | 8     | Going live                              | pending              |
@@ -100,6 +100,26 @@ Vesa picks → swap Inter for it in `public/index.html` + `src/styles/marketplac
   USD estimate format: **"$5 709,00 USD"** — $ always in front, number in app locale, "USD"
   suffix to disambiguate from other dollars. Full example: `5 000,00 € (≈ $5 704,00 USD)`.
 - E2E `currency.spec.js` requires the `(≈ $… USD)` pattern on a search card + listing page.
+
+## Key facts & decisions (Phase 5A)
+
+- Cart lives in `currentUser.profile.privateData.cart`:
+  `{ authorId, authorName, items: [{ listingId, quantity }], updatedAt }` (single-vendor).
+  Global duck `src/ducks/cart.duck.js`: pure helpers (tested) + `saveCartThunk`
+  (`sdk.currentUser.updateProfile` + `setCurrentUser`); slice only tracks saveInProgress/saveError.
+- Add to cart: `ProductOrderForm` (purchase listings only) → `OrderPanel` → both ListingPage
+  variants via `handleAddToCart` in ListingPage.shared.js; guests → signup redirect;
+  different-seller add → `ReplaceCartModal` (ListingPage/ReplaceCartModal/).
+- Topbar: `IconCart` component; desktop `#cart-link` + count bubble (TopbarDesktop), mobile bar
+  icon + mobile-menu link. Count = total quantity via `cartItemCount(getCart(currentUser))`.
+- `/cart` (auth) = `src/containers/CartPage/` — loadData: fetchCurrentUser → `listings.query`
+  by ids incl. images/currentStock; rows with steppers (clamped to stock), remove, subtotal
+  EUR + USD estimate; unavailable items excluded from subtotal. Checkout button disabled (5B).
+- E2E `cart.spec.js` runs when `E2E_TEST_USER_EMAIL`/`E2E_TEST_USER_PASSWORD` are in `.env`
+  (playwright.config loads dotenv). Test user owns the two purchase listings — own-listing
+  cart adds are allowed (handy for testing; a real checkout of one's own listing fails anyway).
+- Vesa's Dev listings: "Exerpeutic 400XL" (6a60d73b-…, €5,000) and "Exerpeutic 525XLR"
+  (6a60f221-ffc6-40fa-b25a-8a35a3425188, €2,500, stock 5).
 
 ## Phase 1 credentials checklist (Vesa)
 

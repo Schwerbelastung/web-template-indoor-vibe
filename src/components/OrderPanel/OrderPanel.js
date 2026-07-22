@@ -304,6 +304,8 @@ const OrderPanel = props => {
     timeSlotsForDate,
     onFetchTransactionLineItems,
     onContactUser,
+    onAddToCart,
+    addToCartInProgress,
     lineItems,
     marketplaceCurrency,
     dayCountAvailableForBooking,
@@ -543,6 +545,8 @@ const OrderPanel = props => {
             shippingEnabled={shippingEnabled && displayShipping}
             displayDeliveryMethod={displayPickup || displayShipping}
             onContactUser={onContactUser}
+            onAddToCart={onAddToCart}
+            addToCartInProgress={addToCartInProgress}
             {...sharedProps}
           />
         ) : showDownloadForm ? (

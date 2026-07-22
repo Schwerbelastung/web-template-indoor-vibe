@@ -309,3 +309,44 @@
     margin: 0;
   }
 }
+
+.mobileActions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mobileCartLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 12px 0 12px 12px;
+  color: var(--colorGrey700);
+
+  &:hover {
+    color: var(--colorBlack);
+  }
+}
+
+.mobileCartIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.cartCount {
+  position: absolute;
+  top: 6px;
+  right: -8px;
+
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+
+  background-color: var(--marketplaceColor);
+  color: var(--colorWhite);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: var(--fontWeightSemiBold);
+  text-align: center;
+}

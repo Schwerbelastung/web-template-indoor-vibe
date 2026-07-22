@@ -1,5 +1,9 @@
 const { defineConfig, devices } = require('@playwright/test');
 
+// Load .env so tests can read optional settings like E2E_TEST_USER_EMAIL /
+// E2E_TEST_USER_PASSWORD (the file is gitignored; tests skip if these are unset).
+require('dotenv').config();
+
 // PLAYWRIGHT_BASE_URL lets the same tests run against a deployed site (staging in Phase 7).
 // When it is set, Playwright does not start a local dev server.
 const remoteBaseUrl = process.env.PLAYWRIGHT_BASE_URL;

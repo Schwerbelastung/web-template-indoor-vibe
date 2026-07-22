@@ -13,6 +13,7 @@ import { NamedRedirect } from '../components';
 const pageDataLoadingAPI = getPageDataLoadingAPI();
 
 const AuthenticationPage = loadable(() => import(/* webpackChunkName: "AuthenticationPage" */ '../containers/AuthenticationPage/AuthenticationPage'));
+const CartPage = loadable(() => import(/* webpackChunkName: "CartPage" */ '../containers/CartPage/CartPage'));
 const CheckoutPage = loadable(() => import(/* webpackChunkName: "CheckoutPage" */ '../containers/CheckoutPage/CheckoutPage'));
 const CMSPage = loadable(() => import(/* webpackChunkName: "CMSPage" */ '../containers/CMSPage/CMSPage'));
 const ContactDetailsPage = loadable(() => import(/* webpackChunkName: "ContactDetailsPage" */ '../containers/ContactDetailsPage/ContactDetailsPage'));
@@ -139,6 +140,14 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       component: RequestQuotePage,
       extraProps: { mode: 'request-quote' },
       loadData: pageDataLoadingAPI.RequestQuotePage.loadData,
+    },
+    {
+      path: '/cart',
+      name: 'CartPage',
+      auth: true,
+      authPage: 'LoginPage',
+      component: CartPage,
+      loadData: pageDataLoadingAPI.CartPage.loadData,
     },
     {
       path: '/l/:slug/:id/checkout',

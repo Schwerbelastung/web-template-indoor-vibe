@@ -121,6 +121,50 @@
   position: relative;
 }
 
+.cartLink {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 12px;
+  color: var(--colorGrey700);
+  transition: var(--transitionStyleButton);
+
+  &:hover {
+    color: var(--colorBlack);
+    border-radius: 0;
+    text-decoration: none;
+  }
+}
+
+.cartIconWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.cartIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.cartCount {
+  position: absolute;
+  top: -7px;
+  right: -10px;
+
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+
+  background-color: var(--marketplaceColor);
+  color: var(--colorWhite);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: var(--fontWeightSemiBold);
+  text-align: center;
+}
+
 .notificationDot {
   /* Dimensions */
   width: 7px;

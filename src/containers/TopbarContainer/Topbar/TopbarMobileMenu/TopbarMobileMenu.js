@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
 import { FormattedMessage } from '../../../../util/reactIntl';
 import { ensureCurrentUser } from '../../../../util/data';
+import { getCart, cartItemCount } from '../../../../ducks/cart.duck';
 
 import {
   AvatarLarge,
@@ -146,6 +147,10 @@ const TopbarMobileMenu = props => {
       <NotificationBadge className={css.notificationBadge} count={notificationCount} />
     ) : null;
 
+  const cartCount = cartItemCount(getCart(currentUser));
+  const cartCountBadge =
+    cartCount > 0 ? <NotificationBadge className={css.notificationBadge} count={cartCount} /> : null;
+
   const displayName = user.attributes.profile.firstName;
   const currentPageClass = page => {
     const isAccountSettingsPage =
@@ -178,6 +183,12 @@ const TopbarMobileMenu = props => {
             <NamedLink name="InboxPage" params={{ tab: inboxTab }}>
               <FormattedMessage id="TopbarMobileMenu.inboxLink" />
               {notificationCountBadge}
+            </NamedLink>
+          </li>
+          <li className={classNames(css.navigationLink, currentPageClass('CartPage'))}>
+            <NamedLink name="CartPage">
+              <FormattedMessage id="TopbarMobileMenu.cartLink" />
+              {cartCountBadge}
             </NamedLink>
           </li>
           {manageListingsLinkMaybe}

@@ -13,11 +13,14 @@ import { createResourceLocatorString, matchPathname, pathByRouteName } from '../
 import {
   Button,
   IconArrowHead,
+  IconCart,
   LimitedAccessBanner,
   LinkedLogo,
   Modal,
   ModalMissingInformation,
+  NamedLink,
 } from '../../../components';
+import { getCart, cartItemCount } from '../../../ducks/cart.duck';
 import { getSearchPageResourceLocatorStringParams } from '../../SearchPage/SearchPage.shared';
 
 import MenuIcon from './MenuIcon';
@@ -240,6 +243,8 @@ const TopbarComponent = props => {
 
   const notificationDot = notificationCount > 0 ? <div className={css.notificationDot} /> : null;
 
+  const cartCount = cartItemCount(getCart(currentUser));
+
   const hasMatchMedia = typeof window !== 'undefined' && window?.matchMedia;
   const isMobileLayout = hasMatchMedia
     ? window.matchMedia(`(max-width: ${MAX_MOBILE_SCREEN_WIDTH}px)`)?.matches
@@ -312,6 +317,19 @@ const TopbarComponent = props => {
     <div className={css.searchMenu} />
   );
 
+  const mobileCartLinkMaybe = isAuthenticated ? (
+    <NamedLink
+      name="CartPage"
+      className={css.mobileCartLink}
+      title={intl.formatMessage({ id: 'Topbar.cartIcon' })}
+    >
+      <IconCart rootClassName={css.mobileCartIcon} />
+      {cartCount > 0 ? (
+        <span className={css.cartCount}>{cartCount > 99 ? '99+' : cartCount}</span>
+      ) : null}
+    </NamedLink>
+  ) : null;
+
   const handleSkipToMainContent = e => {
     e.preventDefault();
     const mainContent = document.getElementById('main-content');
@@ -364,7 +382,10 @@ const TopbarComponent = props => {
           alt={intl.formatMessage({ id: 'Topbar.logoIcon' })}
           linkToExternalSite={config?.topbar?.logoLink}
         />
-        {mobileSearchButtonMaybe}
+        <div className={css.mobileActions}>
+          {mobileCartLinkMaybe}
+          {mobileSearchButtonMaybe}
+        </div>
       </nav>
       <div className={css.desktop}>
         <TopbarDesktop
