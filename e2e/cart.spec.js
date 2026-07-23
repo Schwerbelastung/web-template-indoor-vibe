@@ -7,14 +7,7 @@ const { test, expect } = require('@playwright/test');
 const email = process.env.E2E_TEST_USER_EMAIL;
 const password = process.env.E2E_TEST_USER_PASSWORD;
 
-const login = async page => {
-  await page.goto('/login');
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
-  // Login redirects away from /login when it succeeds.
-  await page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 20 * 1000 });
-};
+const { login } = require('./helpers');
 
 const cartCountBadge = page => page.locator('#cart-link [class*="cartCount"]');
 
@@ -38,7 +31,7 @@ test.describe('shopping cart', () => {
 
   test('add items, edit quantity, and remove on the cart page', async ({ page }) => {
     test.setTimeout(120 * 1000);
-    await login(page);
+    await login(page, email, password);
 
     // Collect purchase listings from search: open each result and check
     // whether it has an Add to cart button (only purchase listings do).

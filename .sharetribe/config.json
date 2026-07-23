@@ -1,0 +1,6 @@
+{
+  "renderServiceName": "indoorbikeparadise-staging",
+  "stagingUrl": "https://indoorbikeparadise-staging.onrender.com",
+  "basicAuthEnabled": true,
+  "marketplaceName": "indoorbikeparadise"
+}

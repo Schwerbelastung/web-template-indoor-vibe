@@ -8,19 +8,13 @@ const { test, expect } = require('@playwright/test');
 const email = process.env.E2E_TEST_USER_EMAIL;
 const password = process.env.E2E_TEST_USER_PASSWORD;
 
-const login = async page => {
-  await page.goto('/login');
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 20 * 1000 });
-};
+const { login } = require('./helpers');
 
 test('a purchase can be cancelled within the 2-hour window @payment', async ({ page }) => {
   test.skip(!email || !password, 'E2E_TEST_USER_EMAIL / E2E_TEST_USER_PASSWORD not set in .env');
   test.setTimeout(180 * 1000);
 
-  await login(page);
+  await login(page, email, password);
 
   // Find a purchase listing with stock (it has an Add to cart button).
   await page.goto('/s');

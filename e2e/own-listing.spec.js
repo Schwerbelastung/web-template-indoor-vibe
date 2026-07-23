@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { login } = require('./helpers');
 
 // Verifies that a seller does NOT get an "Add to cart" button on their own
 // listing (self-purchases are also rejected by the Marketplace API, but the
@@ -10,11 +11,7 @@ const password = process.env.E2E_SELLER_PASSWORD;
 test('own listings do not offer an Add to cart button', async ({ page }) => {
   test.skip(!email || !password, 'E2E_SELLER_EMAIL / E2E_SELLER_PASSWORD not set');
 
-  await page.goto('/login');
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 20 * 1000 });
+  await login(page, email, password);
 
   // Open the first listing from search — in the test marketplace the seller owns them.
   await page.goto('/s');

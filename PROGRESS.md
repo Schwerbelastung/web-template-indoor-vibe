@@ -1,6 +1,6 @@
 # PROGRESS.md — build status
 
-**Current phase: 7 — Staging deploy to Render (in progress).**
+**Current phase: 8 — Going live (NOT started; prerequisite: Vesa tests staging with fresh eyes).**
 
 ## How to resume
 
@@ -69,7 +69,7 @@ expected in `.env` (Vesa's Console task). Rendering: `LineItemCartItemsMaybe` in
 | 5A    | Cart state + UI                         | ✅ done              |
 | 5B    | One-payment cart checkout               | ✅ done              |
 | 6     | 2-hour customer cancellation            | ✅ done              |
-| 7     | Staging deploy (Render)                 | 🔄 in progress       |
+| 7     | Staging deploy (Render)                 | ✅ done              |
 | 8     | Going live                              | pending              |
 
 ## Key facts & decisions (Phase 0)
@@ -166,6 +166,23 @@ expected in `.env` (Vesa's Console task). Rendering: `LineItemCartItemsMaybe` in
   cart adds are allowed (handy for testing; a real checkout of one's own listing fails anyway).
 - Vesa's Dev listings: "Exerpeutic 400XL" (6a60d73b-…, €5,000) and "Exerpeutic 525XLR"
   (6a60f221-ffc6-40fa-b25a-8a35a3425188, €2,500, stock 5).
+
+## Key facts & decisions (Phase 7)
+
+- **Staging live: https://indoorbikeparadise-staging.onrender.com** (Render Blueprint from
+  `render.yaml`; service `indoorbikeparadise-staging`, free plan — sleeps when idle; basic auth
+  user `indoorbike`, password only in Render + Vesa's head). Secrets entered by Vesa in Render's
+  env form; same values as local `.env` + BASIC_AUTH pair.
+- **Every push to `main` auto-deploys staging** (Blueprint watches GitHub). Env var changes need
+  Manual Deploy → Clear build cache & deploy (REACT_APP_ vars bake at build time).
+- Staging e2e: `$env:PLAYWRIGHT_BASE_URL="https://indoorbikeparadise-staging.onrender.com"` +
+  `E2E_STAGING_AUTH_USER`/`E2E_STAGING_AUTH_PASSWORD` in .env (playwright httpCredentials,
+  remote runs only). Full suite green vs staging. Use `--workers=2` (free dyno).
+- `e2e/helpers.js` shared `login(page, email, password)` — **hydration-safe** (SSR pages wipe
+  values typed before React hydrates; fill is verified+retried). All login specs use it.
+- `.sharetribe/config.json` records service name/staging URL for other Sharetribe skills.
+- Local `yarn build` can fail EPERM on `build/` when Dropbox is mid-sync — retry after clearing;
+  not a code issue (Render unaffected).
 
 ## Key facts & decisions (Phase 5B)
 

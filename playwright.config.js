@@ -20,6 +20,17 @@ module.exports = defineConfig({
   reporter: [['list']],
   use: {
     baseURL: remoteBaseUrl || 'http://localhost:3000',
+    // Staging runs go through the basic-auth gate; the credentials come from
+    // .env (E2E_STAGING_AUTH_USER / E2E_STAGING_AUTH_PASSWORD) and are only
+    // applied for remote runs.
+    ...(remoteBaseUrl && process.env.E2E_STAGING_AUTH_USER
+      ? {
+          httpCredentials: {
+            username: process.env.E2E_STAGING_AUTH_USER,
+            password: process.env.E2E_STAGING_AUTH_PASSWORD || '',
+          },
+        }
+      : {}),
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

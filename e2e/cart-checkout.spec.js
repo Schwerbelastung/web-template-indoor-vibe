@@ -7,13 +7,7 @@ const { test, expect } = require('@playwright/test');
 const email = process.env.E2E_TEST_USER_EMAIL;
 const password = process.env.E2E_TEST_USER_PASSWORD;
 
-const login = async page => {
-  await page.goto('/login');
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 20 * 1000 });
-};
+const { login } = require('./helpers');
 
 const addCurrentListingToCart = async page => {
   const addToCartButton = page.getByRole('button', { name: /add to cart/i });
@@ -31,7 +25,7 @@ test('cart checkout completes one payment for two listings @payment', async ({ p
   test.skip(!email || !password, 'E2E_TEST_USER_EMAIL / E2E_TEST_USER_PASSWORD not set in .env');
   test.setTimeout(180 * 1000);
 
-  await login(page);
+  await login(page, email, password);
 
   // Find two purchase listings.
   await page.goto('/s');
