@@ -68,13 +68,10 @@ const stripeErrorTranslation = (intl, stripeError) => {
   });
 };
 
-const stripeElementsOptions = {
-  fonts: [
-    {
-      cssSrc: 'https://fonts.googleapis.com/css2?family=Sora:wght@400;500&display=swap',
-    },
-  ],
-};
+// No `fonts` cssSrc: loading Sora into the Stripe iframe would fetch it from
+// Google Fonts at checkout, contradicting the marketplace's "no Google requests"
+// privacy stance. The card field falls back to the system sans-serif below.
+const stripeElementsOptions = {};
 
 // card (being a Stripe Elements component), can have own styling passed to it.
 // However, its internal width-calculation seems to break if font-size is too big
@@ -82,7 +79,7 @@ const stripeElementsOptions = {
 const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 const cardStyles = {
   base: {
-    fontFamily: '"Sora", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    fontFamily: '-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
     fontSize: isMobile ? '14px' : '16px',
     fontSmoothing: 'antialiased',
     lineHeight: '24px',

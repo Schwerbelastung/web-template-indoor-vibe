@@ -60,6 +60,12 @@ module.exports = (req, res) => {
 
       const integrationSdk = getIntegrationSdk();
 
+      // Only restore items that were actually decremented at finalize. Items in
+      // cartStockErrors never had their stock reduced, so adding them back would
+      // inflate the seller's inventory (F4).
+      const failedAtFinalize = metadata?.cartStockErrors || [];
+      const itemsToRestore = cartItems.filter(item => !failedAtFinalize.includes(item.listingId));
+
       const restoreOne = item =>
         integrationSdk.stockAdjustments
           .create({ listingId: item.listingId, quantity: item.quantity })
@@ -72,7 +78,7 @@ module.exports = (req, res) => {
             return { listingId: item.listingId, ok: false };
           });
 
-      return Promise.all(cartItems.map(restoreOne)).then(results => {
+      return Promise.all(itemsToRestore.map(restoreOne)).then(results => {
         const failures = results.filter(r => !r.ok).map(r => r.listingId);
         const errorsMaybe = failures.length > 0 ? { cartRestoreErrors: failures } : {};
 

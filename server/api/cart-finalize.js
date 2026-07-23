@@ -54,33 +54,45 @@ module.exports = (req, res) => {
 
       const integrationSdk = getIntegrationSdk();
 
-      const adjustOne = item =>
-        integrationSdk.stockAdjustments
-          .create({ listingId: item.listingId, quantity: -item.quantity })
-          .then(() => ({ listingId: item.listingId, ok: true }))
-          .catch(e => {
-            console.error(
-              `cart-finalize: stock adjustment failed for listing ${item.listingId}:`,
-              e.message
-            );
-            return { listingId: item.listingId, ok: false };
+      // Claim the idempotency flag BEFORE adjusting stock. Concurrent duplicate
+      // requests that arrive after this write see cartStockFinalized and bail
+      // (above), which prevents the double-decrement race. The narrow residual
+      // window (two requests both reading no-flag before either claims) is
+      // documented in docs/CART.md for operator reconciliation.
+      return integrationSdk.transactions
+        .updateMetadata({
+          id: transactionId,
+          metadata: {
+            cartStockFinalized: true,
+            cartStockFinalizedAt: new Date().toISOString(),
+          },
+        })
+        .then(() => {
+          const adjustOne = item =>
+            integrationSdk.stockAdjustments
+              .create({ listingId: item.listingId, quantity: -item.quantity })
+              .then(() => ({ listingId: item.listingId, ok: true }))
+              .catch(e => {
+                console.error(
+                  `cart-finalize: stock adjustment failed for listing ${item.listingId}:`,
+                  e.message
+                );
+                return { listingId: item.listingId, ok: false };
+              });
+
+          return Promise.all(cartItems.map(adjustOne)).then(results => {
+            const failures = results.filter(r => !r.ok).map(r => r.listingId);
+            // Record which items failed so a later cancel-restore skips them (F4).
+            const recordErrors =
+              failures.length > 0
+                ? integrationSdk.transactions.updateMetadata({
+                    id: transactionId,
+                    metadata: { cartStockErrors: failures },
+                  })
+                : Promise.resolve();
+            return recordErrors.then(() => ({ finalized: true, failures }));
           });
-
-      return Promise.all(cartItems.map(adjustOne)).then(results => {
-        const failures = results.filter(r => !r.ok).map(r => r.listingId);
-        const errorsMaybe = failures.length > 0 ? { cartStockErrors: failures } : {};
-
-        return integrationSdk.transactions
-          .updateMetadata({
-            id: transactionId,
-            metadata: {
-              cartStockFinalized: true,
-              cartStockFinalizedAt: new Date().toISOString(),
-              ...errorsMaybe,
-            },
-          })
-          .then(() => ({ finalized: true, failures }));
-      });
+        });
     })
     .then(result => {
       res

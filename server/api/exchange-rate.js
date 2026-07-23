@@ -18,8 +18,19 @@ const FAILURE_COOLDOWN_MS = 60 * 1000;
 let cached = null; // { base, rate, date, fetchedAt }
 let lastFailureAt = 0;
 
+const FETCH_TIMEOUT_MS = 8 * 1000;
+
 const fetchRateFromFrankfurter = async () => {
-  const response = await fetch(FRANKFURTER_URL);
+  // Bound the upstream call so a hung endpoint can't tie up the request for the
+  // ~300s undici default (display-only rate, so fail fast to the EUR fallback).
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(FRANKFURTER_URL, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!response.ok) {
     throw new Error(`Frankfurter API responded with status ${response.status}`);
   }

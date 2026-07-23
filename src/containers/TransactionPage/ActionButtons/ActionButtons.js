@@ -55,8 +55,11 @@ const CountdownHintMaybe = ({ countdown, transitions, intl }) => {
   if (msLeft <= 0) {
     return null;
   }
-  const hours = Math.floor(msLeft / (60 * 60 * 1000));
-  const minutes = Math.ceil((msLeft % (60 * 60 * 1000)) / (60 * 1000));
+  // Round up to whole minutes first, then split — so 1 h 59.5 min shows as
+  // "2 h 0 min", never "1 h 60 min".
+  const totalMinutes = Math.ceil(msLeft / (60 * 1000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   return (
     <div className={css.finePrint}>
       {intl.formatMessage({ id: countdown.translationKey }, { hours, minutes })}

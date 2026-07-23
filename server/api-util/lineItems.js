@@ -142,9 +142,19 @@ const getDateRangeQuantityAndLineItems = (orderData, code) => {
  * @param {Money} [orderData.offer] - The offer for the offer (if transition intent is "make-offer")
  * @param {Object} providerCommission
  * @param {Object} customerCommission
+ * @param {Array} [validatedCartItems] - Server-derived, validated extra cart items.
+ *   SECURITY: this is a dedicated argument that must ONLY ever be populated from
+ *   server-side validation (api-util/cartOrder.js). It is intentionally NOT read
+ *   from orderData, so a client cannot inject arbitrary line-item prices.
  * @returns {Array} lineItems
  */
-exports.transactionLineItems = (listing, orderData, providerCommission, customerCommission) => {
+exports.transactionLineItems = (
+  listing,
+  orderData,
+  providerCommission,
+  customerCommission,
+  validatedCartItems = []
+) => {
   const publicData = listing.attributes.publicData;
   // Note: the unitType needs to be one of the following:
   // day, night, hour, fixed, or item (these are related to payment processes)
@@ -239,11 +249,11 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
   };
 
   // Cart orders: extra purchase listings from the same seller ride along as custom
-  // line items. These come from orderData.validatedCartItems, which is only ever set
-  // server-side after re-fetching and validating each listing (api-util/cartOrder.js) —
-  // client-sent prices are never used.
-  const validatedCartItems = orderData?.validatedCartItems || [];
-  const cartItemLineItems = validatedCartItems.map((item, index) => ({
+  // line items. These come from the dedicated validatedCartItems argument, which is
+  // only ever populated by server-side validation (api-util/cartOrder.js). It is never
+  // read from orderData, so client-sent prices can never enter pricing.
+  const safeCartItems = Array.isArray(validatedCartItems) ? validatedCartItems : [];
+  const cartItemLineItems = safeCartItems.map((item, index) => ({
     code: `line-item/cart-item-${index + 1}`,
     unitPrice: new Money(item.unitPriceAmount, item.currency),
     quantity: item.quantity,

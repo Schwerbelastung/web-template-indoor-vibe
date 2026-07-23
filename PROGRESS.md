@@ -2,6 +2,24 @@
 
 **Current phase: 8 — Going live (NOT started; prerequisite: Vesa tests staging with fresh eyes).**
 
+**Adversarial QA fixes applied 2026-07-23** (from Indoorbikeparadise-QA-Report.md):
+- F1 (BLOCKER, money): `transactionLineItems` now reads validated cart items from a dedicated
+  5th arg, never from client `orderData`; `initiate-privileged` strips client `validatedCartItems`.
+  Regression test in `lineItems.cart.test.js`. Closes the "buy anything for ~€1" hole in BOTH
+  `initiate-privileged` and `transaction-line-items`.
+- F2 (stock race): `cart-finalize` claims `cartStockFinalized` BEFORE adjusting stock.
+- F4 (over-restore): `cart-restore-stock` skips ids in `cartStockErrors`.
+- F5: `MAX_CART_LINE_ITEMS` 49→46 (base+shipping+2 commission headroom).
+- F6/F7 (privacy): removed Google-Fonts `cssSrc` from StripePaymentForm + PaymentMethodsForm
+  (checkout is now Google-free; CSP allowlist left as harmless dead entries).
+- F3 (dropped emails): re-anchored order-receipt + shipping-reminder to
+  `:on close-cancellation-window` (fire when window closes → purchased). **Pushed
+  default-purchase v4; release-1 → v4** (PT2H window intact; v3 was QA's leftover PT3M experiment).
+- F9 (fetch timeout), F11 (assert EUR), F12 (.env-template), F-COUNTDOWN ("1h 60min" carry) fixed.
+- Not changed (out of scope / accepted): F7b (our repo `.env` already uses names specs read;
+  documented in .env-template), F8 (upstream skew), F10/F13 (accepted), F14/F15 (Console config),
+  F16 (info). See Indoorbikeparadise-QA-Fixes-Report.pdf.
+
 ## How to resume
 
 Open a terminal in this repo folder, run `claude`, and say:

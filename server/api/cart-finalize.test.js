@@ -108,21 +108,24 @@ describe('cart-finalize endpoint', () => {
         metadata: expect.objectContaining({ cartStockFinalized: true }),
       })
     );
+    // F2: the idempotency flag is claimed BEFORE any stock is adjusted.
+    expect(updateMetadata.mock.invocationCallOrder[0]).toBeLessThan(
+      stockAdjustmentsCreate.mock.invocationCallOrder[0]
+    );
     expect(sentPayload(res)).toEqual({ finalized: true, failures: [] });
   });
 
-  it('records failures without blocking the response', async () => {
+  it('records failures in a follow-up metadata write, without blocking the response', async () => {
     const { updateMetadata } = mockSdks(makeTx(), { adjustmentFailsFor: ['b'] });
     const res = createResponse();
     await cartFinalize({ body: { transactionId: 'tx-1' } }, res);
 
+    // Claim write first (flag), then a second write recording the failed ids.
     expect(updateMetadata).toHaveBeenCalledWith(
-      expect.objectContaining({
-        metadata: expect.objectContaining({
-          cartStockFinalized: true,
-          cartStockErrors: ['b'],
-        }),
-      })
+      expect.objectContaining({ metadata: expect.objectContaining({ cartStockFinalized: true }) })
+    );
+    expect(updateMetadata).toHaveBeenCalledWith(
+      expect.objectContaining({ metadata: expect.objectContaining({ cartStockErrors: ['b'] }) })
     );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(sentPayload(res)).toEqual({ finalized: true, failures: ['b'] });

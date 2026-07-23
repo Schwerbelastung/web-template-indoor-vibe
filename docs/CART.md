@@ -22,13 +22,16 @@
 Sharetribe reserves stock automatically **only for the primary listing**. For the extra items:
 
 1. Right after the payment succeeds, the buyer's browser calls `POST /api/cart-finalize`.
-2. The server verifies the transaction is a paid purchase, then decrements each extra item's
-   stock through the **Integration API** (`stockAdjustments.create` with a negative quantity)
-   and marks the transaction metadata with `cartStockFinalized: true` (idempotent — repeated
-   calls do nothing).
+2. The server **claims** the transaction by writing `cartStockFinalized: true` **before**
+   adjusting any stock, then decrements each extra item's stock through the **Integration API**
+   (`stockAdjustments.create` with a negative quantity). Claiming first means a concurrent
+   duplicate request sees the flag and bails, preventing double-decrement. (Residual window:
+   two requests that both read "no flag" in the same instant could still both proceed — rare,
+   and it surfaces via the reconciliation checks below rather than corrupting silently.)
 3. If an adjustment fails (e.g. another buyer took the last piece seconds earlier, or the
-   browser died mid-call), the failure is recorded in the transaction metadata as
-   `cartStockErrors: [listingIds]`.
+   browser died mid-call), the failing listing ids are recorded in the transaction metadata as
+   `cartStockErrors: [listingIds]`. A later cancel-restore **skips** those ids, so it never
+   adds back stock that was never decremented.
 
 ### Operator reconciliation
 

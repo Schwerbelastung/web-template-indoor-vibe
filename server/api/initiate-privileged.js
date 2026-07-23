@@ -17,17 +17,20 @@ const { Money } = sharetribeSdk.types;
 const listingPromise = (sdk, id) => sdk.listings.show({ id, include: ['author'] });
 
 const getFullOrderData = (orderData, bodyParams, currency) => {
-  const { offerInSubunits } = orderData || {};
+  // SECURITY: never let a client-supplied validatedCartItems reach pricing. Cart
+  // item prices are derived server-side and passed to transactionLineItems as a
+  // dedicated argument (see below), so we strip any injected copy here.
+  const { offerInSubunits, validatedCartItems, ...safeOrderData } = orderData || {};
   const transitionName = bodyParams.transition;
 
   return isIntentionToMakeOffer(offerInSubunits, transitionName)
     ? {
-        ...orderData,
+        ...safeOrderData,
         ...bodyParams.params,
         currency,
         offer: new Money(offerInSubunits, currency),
       }
-    : { ...orderData, ...bodyParams.params };
+    : { ...safeOrderData, ...bodyParams.params };
 };
 
 const getMetadata = (orderData, transition) => {
@@ -76,16 +79,16 @@ module.exports = (req, res) => {
         : Promise.resolve(null);
 
       return validatedCartItemsPromise.then(validatedCartItems => {
-        const cartOrderDataMaybe = validatedCartItems ? { validatedCartItems } : {};
         cartProtectedDataMaybe = validatedCartItems
           ? cartItemsProtectedData(validatedCartItems)
           : {};
 
         lineItems = transactionLineItems(
           listing,
-          { ...getFullOrderData(orderData, bodyParams, currency), ...cartOrderDataMaybe },
+          getFullOrderData(orderData, bodyParams, currency),
           providerCommission,
-          customerCommission
+          customerCommission,
+          validatedCartItems
         );
         metadataMaybe = getMetadata(orderData, transitionName);
 

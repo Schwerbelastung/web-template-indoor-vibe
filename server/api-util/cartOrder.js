@@ -1,4 +1,7 @@
-const MAX_CART_LINE_ITEMS = 49; // the whole transaction may have max 50 line items
+// The whole transaction may have at most 50 line items. Besides the extra cart
+// items, a purchase can emit: 1 base item + up to 1 shipping fee + up to 2
+// commission lines (provider + customer). Cap extras at 46 to stay under 50.
+const MAX_CART_LINE_ITEMS = 46;
 
 const badRequest = message => {
   const error = new Error(message);
@@ -58,6 +61,11 @@ exports.fetchAndValidateCartItems = (sdk, primaryListing, cartItems) => {
   return Promise.resolve()
     .then(() => {
       validateCartItemsShape(cartItems, primaryListingId);
+      // Defense-in-depth: the marketplace charges in EUR only. Refuse to build a
+      // cart order in any other currency, even if a listing slipped through.
+      if (primaryCurrency !== 'EUR') {
+        throw badRequest(`Error: cart checkout supports EUR only (got ${primaryCurrency}).`);
+      }
       return sdk.listings.query({
         ids: cartItems.map(i => i.listingId),
         include: ['author', 'currentStock'],

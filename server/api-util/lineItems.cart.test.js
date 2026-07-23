@@ -27,9 +27,10 @@ describe('transactionLineItems with cart items', () => {
   it('adds a line item per cart item with server-side prices', () => {
     const lineItems = transactionLineItems(
       listingWithMoney,
-      { stockReservationQuantity: 1, validatedCartItems },
+      { stockReservationQuantity: 1 },
       null,
-      null
+      null,
+      validatedCartItems
     );
 
     const cartLines = lineItems.filter(li => li.code.startsWith('line-item/cart-item-'));
@@ -52,9 +53,10 @@ describe('transactionLineItems with cart items', () => {
   it('computes commissions on the whole payin (base + cart items)', () => {
     const lineItems = transactionLineItems(
       listingWithMoney,
-      { stockReservationQuantity: 1, validatedCartItems },
+      { stockReservationQuantity: 1 },
       { percentage: 10 },
-      { percentage: 5 }
+      { percentage: 5 },
+      validatedCartItems
     );
 
     // base 250000 + (2 x 100000) + 50000 = 500000
@@ -66,6 +68,23 @@ describe('transactionLineItems with cart items', () => {
     const customerCommission = lineItems.find(li => li.code === 'line-item/customer-commission');
     expect(customerCommission).toBeDefined();
     expect(customerCommission.unitPrice.amount).toBe(500000);
+  });
+
+  it('IGNORES cart items injected via orderData (F1 price-tampering guard)', () => {
+    // A malicious client sends validatedCartItems inside orderData, trying to add
+    // a negative-priced line. It must be ignored: no cart-item lines, price intact.
+    const malicious = [{ listingId: 'x', quantity: 1, unitPriceAmount: -490000, currency: 'EUR' }];
+    const lineItems = transactionLineItems(
+      listingWithMoney,
+      { stockReservationQuantity: 1, validatedCartItems: malicious },
+      { percentage: 10 },
+      null
+      // note: no 5th argument — nothing legitimately validated
+    );
+    expect(lineItems.some(li => li.code.startsWith('line-item/cart-item-'))).toBe(false);
+    const providerCommission = lineItems.find(li => li.code === 'line-item/provider-commission');
+    // commission base stays the plain 250000 order, unaffected by the injection
+    expect(providerCommission.unitPrice.amount).toBe(250000);
   });
 
   it('keeps behavior unchanged without cart items', () => {

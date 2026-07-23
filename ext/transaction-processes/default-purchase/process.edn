@@ -205,9 +205,13 @@
    :to :state/reviewed}],
  :notifications
  [{:name :notification/order-receipt,
-   :on :transition/confirm-payment,
-   ;; This notification is delayed to give the customer a chance to verify their
-   ;; email address, in case they are a new customer.
+   ;; Triggered when the 2-hour cancellation window closes and the order becomes
+   ;; a real purchase. (Since Phase 6, confirm-payment enters :state/cancellation-window,
+   ;; not :state/purchased, so anchoring to :state/purchased on confirm-payment would
+   ;; never fire — the receipt would be silently dropped.) Orders cancelled within the
+   ;; window never reach this transition, so no receipt is sent for them, which is correct.
+   :on :transition/close-cancellation-window,
+   ;; Still delayed a little to give a new customer a chance to verify their email.
    :at
    {:fn/plus
     [{:fn/timepoint [:time/first-entered-state :state/purchased]}
@@ -219,7 +223,9 @@
    :to :actor.role/provider,
    :template :purchase-new-order}
   {:name :notification/shipping-reminder,
-   :on :transition/confirm-payment,
+   ;; Also re-anchored to close-cancellation-window (see order-receipt above);
+   ;; :state/purchased is long-lived so the P3D delay fires reliably.
+   :on :transition/close-cancellation-window,
    :at
    {:fn/plus
     [{:fn/timepoint [:time/first-entered-state :state/purchased]}
